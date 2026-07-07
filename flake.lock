@@ -1,0 +1,111 @@
+{
+  "nodes": {
+    "nixln-edit": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783290596,
+        "narHash": "sha256-m9LxS9DpgRoaQDOuo4kc8cIhHdebnfDYWkIoSkaIWBI=",
+        "owner": "nlintn",
+        "repo": "nixln-edit",
+        "rev": "42c5063cde88cac90f87e357700c086c4d611fa4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nlintn",
+        "repo": "nixln-edit",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1783224372,
+        "narHash": "sha256-8i/87eeoqiGE4yOTjwSA3Eh/ziJRQEmd/unYU+K27sk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d407951447dcd00442e97087bf374aad70c04cea",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nvim-config": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782841767,
+        "narHash": "sha256-mfrg8XGJDv5BbARkGt8przLLWqJ/Xsy3vP9aOcXLH3o=",
+        "owner": "RisGar",
+        "repo": "nvim-config",
+        "rev": "9aed7a44c574ccffe6d51dfecb8eab7a677e2e48",
+        "type": "github"
+      },
+      "original": {
+        "owner": "RisGar",
+        "repo": "nvim-config",
+        "type": "github"
+      }
+    },
+    "ocrtool-mcp": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783389605,
+        "narHash": "sha256-++n2V2SIOk2OFzuQ/q4Mpa8vY716UJjRDE0y3dAcW4Q=",
+        "owner": "RisGar",
+        "repo": "ocrtool-mcp",
+        "rev": "5d7f96fdc86e92122e3e03aa97a19a15802a90d0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "RisGar",
+        "repo": "ocrtool-mcp",
+        "type": "github"
+      }
+    },
+    "print-cli-rs": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1783387548,
+        "narHash": "sha256-nQQ+uIJEPNltZOk8JsXZ0gUYX/9LH8f9NWG3RKtqtao=",
+        "owner": "RisGar",
+        "repo": "print-cli-rs",
+        "rev": "249c5a2425549829e67452094bea70890cc8c5e2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "RisGar",
+        "repo": "print-cli-rs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixln-edit": "nixln-edit",
+        "nixpkgs": "nixpkgs",
+        "nvim-config": "nvim-config",
+        "ocrtool-mcp": "ocrtool-mcp",
+        "print-cli-rs": "print-cli-rs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
