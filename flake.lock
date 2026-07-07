@@ -83,11 +83,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783387548,
-        "narHash": "sha256-nQQ+uIJEPNltZOk8JsXZ0gUYX/9LH8f9NWG3RKtqtao=",
+        "lastModified": 1783390230,
+        "narHash": "sha256-CUTs/5SxcOHQzo4rablu6kIAzp8HriBKEyOwOh8Tz44=",
         "owner": "RisGar",
         "repo": "print-cli-rs",
-        "rev": "249c5a2425549829e67452094bea70890cc8c5e2",
+        "rev": "05c0628358ba2d1806f65999780b8fd931775a08",
         "type": "github"
       },
       "original": {
