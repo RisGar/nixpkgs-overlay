@@ -1,8 +1,9 @@
 {
-  apple-sdk,
+  apple-sdk_14,
   fetchFromGitHub,
   lib,
   stdenv,
+  lld,
   ...
 }:
 stdenv.mkDerivation (finalAttrs: {
@@ -16,8 +17,9 @@ stdenv.mkDerivation (finalAttrs: {
     hash = "sha256-ETIfD6j5VhNVCs3Wo6tutnHULzNMO4qgqqX6blTfxBA=";
   };
 
+  nativeBuildInputs = [ lld ];
   buildInputs = [
-    apple-sdk
+    apple-sdk_14
   ];
 
   buildPhase = ''
@@ -28,7 +30,8 @@ stdenv.mkDerivation (finalAttrs: {
         dragterm/Info.plist > Info.plist
 
     clang -framework Cocoa -I dragterm \
-        -sectcreate __TEXT __info_plist Info.plist \
+        -fuse-ld=lld \
+        -Wl,-sectcreate,__TEXT,__info_plist,Info.plist \
         dragterm/main.m dragterm/DTDraggingSourceView.m \
         -o drag
   '';
