@@ -38,7 +38,7 @@
 
         nerdfont-cheatsheet = inputs.nerdfont-cheatsheet.packages.${system}.default;
         nixln-edit = inputs.nixln-edit.packages.${system}.default;
-        ocrtool-mcp = inputs.ocrtool-mcp.packages.${system}.default;
+        ocrtool-mcp = prev.callPackage ./pkgs/ocrtool-mcp.nix { };
         print-cli-rs = inputs.print-cli-rs.packages.${system}.default;
 
         yaziPlugins = prev.yaziPlugins // {
@@ -89,10 +89,6 @@
     };
     print-cli-rs = {
       url = "github:RisGar/print-cli-rs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    ocrtool-mcp = {
-      url = "github:RisGar/ocrtool-mcp";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nerdfont-cheatsheet = {
