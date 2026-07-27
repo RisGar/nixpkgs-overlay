@@ -1,30 +1,8 @@
 {
   "nodes": {
-    "nerdfont-cheatsheet": {
-      "inputs": {
-        "nix-gleam": "nix-gleam",
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1783699635,
-        "narHash": "sha256-SkBu28bKlctARvSArjCi1l1DRNLheghirQ0GhgGpYKg=",
-        "owner": "RisGar",
-        "repo": "nerdfont_cheatsheet",
-        "rev": "97b4623745f97a82af98b98ed0991a4b1bdbde35",
-        "type": "github"
-      },
-      "original": {
-        "owner": "RisGar",
-        "repo": "nerdfont_cheatsheet",
-        "type": "github"
-      }
-    },
     "nix-gleam": {
       "inputs": {
         "nixpkgs": [
-          "nerdfont-cheatsheet",
           "nixpkgs"
         ]
       },
@@ -39,36 +17,17 @@
       "original": {
         "owner": "arnarg",
         "repo": "nix-gleam",
-        "type": "github"
-      }
-    },
-    "nixln-edit": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1783290596,
-        "narHash": "sha256-m9LxS9DpgRoaQDOuo4kc8cIhHdebnfDYWkIoSkaIWBI=",
-        "owner": "nlintn",
-        "repo": "nixln-edit",
-        "rev": "42c5063cde88cac90f87e357700c086c4d611fa4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nlintn",
-        "repo": "nixln-edit",
+        "rev": "347afd30f4d2701d16913f285f430731343cd96f",
         "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1783522502,
-        "narHash": "sha256-iffAls3iaNTyJC2faYcUXSI+Gp02cDjYl+MygxKl2GI=",
+        "lastModified": 1785454630,
+        "narHash": "sha256-LQy14TZp77TwbQf40gg1V3jo8FwJG0jGDkAH+zRHqg8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0bb7ec54c8483066ec9d7720e780a5caa71f8612",
+        "rev": "1559d3daa3ecc813a650b79375ea61b6741b8746",
         "type": "github"
       },
       "original": {
@@ -78,74 +37,10 @@
         "type": "github"
       }
     },
-    "nvim-config": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1783558519,
-        "narHash": "sha256-LVR4wMAjDL8Lh3Snl3pnn3Cw9E33zj1/1gZY7fCyJCM=",
-        "owner": "RisGar",
-        "repo": "nvim-config",
-        "rev": "67d87735a05f5c6f1397e0115a0c1538d4761a84",
-        "type": "github"
-      },
-      "original": {
-        "owner": "RisGar",
-        "repo": "nvim-config",
-        "type": "github"
-      }
-    },
-    "ocrtool-mcp": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1783389605,
-        "narHash": "sha256-++n2V2SIOk2OFzuQ/q4Mpa8vY716UJjRDE0y3dAcW4Q=",
-        "owner": "RisGar",
-        "repo": "ocrtool-mcp",
-        "rev": "5d7f96fdc86e92122e3e03aa97a19a15802a90d0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "RisGar",
-        "repo": "ocrtool-mcp",
-        "type": "github"
-      }
-    },
-    "print-cli-rs": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1783390230,
-        "narHash": "sha256-CUTs/5SxcOHQzo4rablu6kIAzp8HriBKEyOwOh8Tz44=",
-        "owner": "RisGar",
-        "repo": "print-cli-rs",
-        "rev": "05c0628358ba2d1806f65999780b8fd931775a08",
-        "type": "github"
-      },
-      "original": {
-        "owner": "RisGar",
-        "repo": "print-cli-rs",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
-        "nerdfont-cheatsheet": "nerdfont-cheatsheet",
-        "nixln-edit": "nixln-edit",
-        "nixpkgs": "nixpkgs",
-        "nvim-config": "nvim-config",
-        "ocrtool-mcp": "ocrtool-mcp",
-        "print-cli-rs": "print-cli-rs"
+        "nix-gleam": "nix-gleam",
+        "nixpkgs": "nixpkgs"
       }
     }
   },

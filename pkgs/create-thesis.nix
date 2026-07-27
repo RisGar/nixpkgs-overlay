@@ -29,7 +29,6 @@ python3Packages.buildPythonApplication {
     ref = "refs/tags/v1.1.0";
   };
 
-  # The Python setup files are in the 'source' subdirectory
   postUnpack = ''
     sourceRoot=$sourceRoot/source
   '';
