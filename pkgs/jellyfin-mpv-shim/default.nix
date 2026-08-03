@@ -21,6 +21,10 @@ python3Packages.buildPythonApplication rec {
     hash = "sha256-ZWmJQJAGAonStZyWww4P+034f2vGnTwLua7KUOqoBBE=";
   };
 
+  patches = lib.optionals stdenv.isDarwin [
+    ./darwin-posix-config.patch
+  ];
+
   nativeBuildInputs = [
     gobject-introspection
   ]
@@ -66,11 +70,6 @@ python3Packages.buildPythonApplication rec {
       --replace-fail "mpv-jsonipc" "python_mpv_jsonipc"
   ''
   + lib.optionalString stdenv.isDarwin ''
-    # Patch conffile.py to use POSIX config paths on macOS
-    substituteInPlace jellyfin_mpv_shim/conffile.py \
-      --replace-fail "elif _confdir is not None:" "elif sys.platform.startswith(\"darwin\"): return posix(app)
-    elif _confdir is not None:"
-
     # Patch pack-next.json for macOS compatibility if it exists
     find . -name "pack-next.json" -exec sed -i 's/"gpu_api", "opengl"/"gpu_api", "vulkan"/' {} + || true
     find . -name "pack-next.json" -exec sed -i '/"dither-fruit-default",/d' {} + || true

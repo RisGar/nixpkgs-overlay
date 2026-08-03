@@ -1,0 +1,12 @@
+--- a/jellyfin_mpv_shim/conffile.py
++++ b/jellyfin_mpv_shim/conffile.py
+@@ -31,9 +31,4 @@
+     ("cygwin", posix),
+-    (
+-        "darwin",
+-        lambda app: os.path.join(
+-            "/Users", username, "Library/Application Support", app
+-        ),
+-    ),
++    ("darwin", posix),
+ )
