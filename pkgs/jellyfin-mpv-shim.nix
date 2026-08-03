@@ -33,7 +33,7 @@ python3Packages.buildPythonApplication rec {
 
   dependencies = with python3Packages; [
     jellyfin-apiclient-python
-    mpv
+    (mpv.overridePythonAttrs (old: { doCheck = !stdenv.isDarwin; }))
     python-mpv-jsonipc
     requests
 
