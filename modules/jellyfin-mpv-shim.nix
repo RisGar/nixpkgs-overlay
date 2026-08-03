@@ -39,6 +39,7 @@ let
 in
 {
   meta.maintainers = [ lib.maintainers.repparw ];
+  disabledModules = [ "services/jellyfin-mpv-shim.nix" ];
 
   options = {
     services.jellyfin-mpv-shim = {
