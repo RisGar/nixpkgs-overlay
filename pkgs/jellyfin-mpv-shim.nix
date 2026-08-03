@@ -33,7 +33,9 @@ python3Packages.buildPythonApplication rec {
 
   dependencies = with python3Packages; [
     jellyfin-apiclient-python
-    (mpv.overridePythonAttrs (old: { doCheck = !stdenv.isDarwin; }))
+    (mpv.overridePythonAttrs (old: {
+      doCheck = !stdenv.isDarwin;
+    }))
     python-mpv-jsonipc
     requests
 
@@ -62,10 +64,12 @@ python3Packages.buildPythonApplication rec {
     substituteInPlace pyproject.toml \
       --replace-fail "python-mpv" "mpv" \
       --replace-fail "mpv-jsonipc" "python_mpv_jsonipc"
-  '' + lib.optionalString stdenv.isDarwin ''
+  ''
+  + lib.optionalString stdenv.isDarwin ''
     # Patch conffile.py to use POSIX config paths on macOS
-    sed -i '/"darwin"/,/)/d' jellyfin_mpv_shim/conffile.py
-    sed -i 's/("cygwin", posix),/("cygwin", posix),\n    ("darwin", posix),/' jellyfin_mpv_shim/conffile.py
+    substituteInPlace jellyfin_mpv_shim/conffile.py \
+      --replace-fail "elif _confdir is not None:" "elif sys.platform.startswith(\"darwin\"): return posix(app)
+    elif _confdir is not None:"
 
     # Patch pack-next.json for macOS compatibility if it exists
     find . -name "pack-next.json" -exec sed -i 's/"gpu_api", "opengl"/"gpu_api", "vulkan"/' {} + || true
@@ -90,8 +94,6 @@ python3Packages.buildPythonApplication rec {
   dontWrapGApps = true;
 
   pythonImportsCheck = [ "jellyfin_mpv_shim" ];
-
-
 
   desktopItems = lib.optionals stdenv.isLinux [
     (makeDesktopItem {
