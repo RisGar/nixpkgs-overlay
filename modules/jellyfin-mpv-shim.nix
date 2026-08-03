@@ -109,9 +109,14 @@ in
 
     xdg.configFile =
       let
-        mergedMpvConfig = config.programs.mpv.config // (if cfg.additionalMpvConfig != null then cfg.additionalMpvConfig else {});
-        mergedMpvBindings = config.programs.mpv.bindings // (if cfg.additionalMpvBindings != null then cfg.additionalMpvBindings else {});
-      in {
+        mergedMpvConfig =
+          config.programs.mpv.config
+          // (if cfg.additionalMpvConfig != null then cfg.additionalMpvConfig else { });
+        mergedMpvBindings =
+          config.programs.mpv.bindings
+          // (if cfg.additionalMpvBindings != null then cfg.additionalMpvBindings else { });
+      in
+      {
         "jellyfin-mpv-shim/mpv.conf" = lib.mkIf (mergedMpvConfig != { }) {
           text = renderOptions mergedMpvConfig;
         };
@@ -145,6 +150,8 @@ in
         KeepAlive = true;
         RunAtLoad = true;
         ProcessType = "Interactive";
+        StandardOutPath = "${config.home.homeDirectory}/.cache/jellyfin-mpv-shim.log";
+        StandardErrorPath = "${config.home.homeDirectory}/.cache/jellyfin-mpv-shim.err.log";
         EnvironmentVariables = {
           PATH = "${lib.makeBinPath [ cfg.package ]}:/usr/bin:/bin:/usr/sbin:/sbin";
         };
