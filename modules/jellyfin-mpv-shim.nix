@@ -150,10 +150,13 @@ in
         KeepAlive = true;
         RunAtLoad = true;
         ProcessType = "Interactive";
-        StandardOutPath = "${config.home.homeDirectory}/.cache/jellyfin-mpv-shim.log";
-        StandardErrorPath = "${config.home.homeDirectory}/.cache/jellyfin-mpv-shim.err.log";
         EnvironmentVariables = {
-          PATH = "${lib.makeBinPath [ cfg.package pkgs.mpv ]}:/usr/bin:/bin:/usr/sbin:/sbin";
+          PATH = "${
+            lib.makeBinPath [
+              cfg.package
+              pkgs.mpv
+            ]
+          }:/usr/bin:/bin:/usr/sbin:/sbin";
         };
       };
     };
