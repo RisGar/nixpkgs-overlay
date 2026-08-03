@@ -1,7 +1,9 @@
 {
   description = "Overlay for nixpkgs";
-  outputs = { nixpkgs, nix-gleam, ... }: {
+  outputs = { nix-gleam, ... }: {
+    homeManagerModules.default = ./modules/jellyfin-mpv-shim.nix;
     overlays.default = final: prev: {
+      jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim.nix { };
       thaw = prev.callPackage ./pkgs/thaw.nix { };
       mole-mac = prev.callPackage ./pkgs/mole-mac.nix { };
       dragterm = prev.callPackage ./pkgs/dragterm.nix { };
@@ -65,13 +67,6 @@
     };
   };
   inputs = {
-    nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixos-unstable";
-    };
-
-    nix-gleam = {
-      url = "github:arnarg/nix-gleam/347afd30f4d2701d16913f285f430731343cd96f";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nix-gleam.url = "github:arnarg/nix-gleam/347afd30f4d2701d16913f285f430731343cd96f";
   };
 }
