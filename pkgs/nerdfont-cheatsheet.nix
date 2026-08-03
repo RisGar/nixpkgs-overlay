@@ -9,8 +9,8 @@ let
   src = fetchFromGitHub {
     owner = "RisGar";
     repo = "nerdfont_cheatsheet";
-    rev = "3173ea56b31b501a49c646330cd139e9dfe32d6e";
-    hash = "sha256-IQkj6tD2IQygX9S0a49V13NTYzQX8TfXV2V9AiRB25I=";
+    rev = "45bf183f52e209a1476d791dc3d5c140fa3b6aa0";
+    hash = "sha256-/bVL9vtdSxQ2P2VncdkHdnAS9lc4cseOxUXNPJe2PM8=";
   };
 in
 callPackage "${src}/default.nix" {
