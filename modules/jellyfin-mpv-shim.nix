@@ -144,6 +144,7 @@ in
         ProgramArguments = [ "${lib.getExe cfg.package}" ];
         KeepAlive = true;
         RunAtLoad = true;
+        ProcessType = "Interactive";
         EnvironmentVariables = {
           PATH = "${lib.makeBinPath [ cfg.package ]}:/usr/bin:/bin:/usr/sbin:/sbin";
         };
