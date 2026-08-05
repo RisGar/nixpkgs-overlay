@@ -5,6 +5,7 @@
       self,
       nixpkgs,
       nix-gleam,
+      nixpkgs-logseq,
       ...
     }:
     let
@@ -32,10 +33,7 @@
 
         logseq = (
           let
-            pkgs' = import (fetchTarball {
-              url = "https://github.com/NixOS/nixpkgs/archive/ec1c722e017dfccbb2f66a8aafbe003320266d33.tar.gz";
-              sha256 = "0jws2i94asr1yish76799gmyw51dj98n8badq3snc8prifmsd3a5";
-            }) { system = prev.stdenv.hostPlatform.system; };
+            pkgs' = import nixpkgs-logseq { system = prev.stdenv.hostPlatform.system; }; # TODO: wait for https://github.com/NixOS/nixpkgs/pull/516682
           in
           pkgs'.logseq
         );
@@ -97,5 +95,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-gleam.url = "github:arnarg/nix-gleam/main";
+    nixpkgs-logseq.url = "github:NixOS/nixpkgs/ec0c722e017dfccbb2f66a8aafbe003320266d33";
   };
 }
