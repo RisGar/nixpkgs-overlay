@@ -18,7 +18,9 @@
         mole-mac = prev.callPackage ./pkgs/mole-mac.nix { };
         dragterm = prev.callPackage ./pkgs/dragterm.nix { };
         walavave-trash-cli = prev.callPackage ./pkgs/walavave-trash-cli.nix { };
-        create-thesis = prev.callPackage ./pkgs/create-thesis.nix { };
+        drucktool-utils = prev.callPackage ./pkgs/drucktool-utils.nix { };
+        create-thesis = prev.lib.addMetaAttrs { mainProgram = "create-thesis"; } final.drucktool-utils;
+        autonup = prev.lib.addMetaAttrs { mainProgram = "autonup"; } final.drucktool-utils;
         ocrtool-mcp = prev.callPackage ./pkgs/ocrtool-mcp.nix { };
         nvim = prev.callPackage ./pkgs/nvim-config.nix { };
         nixln-edit = prev.callPackage ./pkgs/nixln-edit.nix { };
@@ -85,11 +87,11 @@
             config.allowUnfree = true;
           };
           # Dynamically extract all attributes defined in our overlay
-          myPkgs = self.overlays.default pkgs pkgs;
+          pkgs' = self.overlays.default pkgs pkgs;
         in
         pkgs.lib.filterAttrs (
           name: pkg: pkgs.lib.isDerivation pkg && pkgs.lib.meta.availableOn pkgs.stdenv.hostPlatform pkg
-        ) myPkgs
+        ) pkgs'
       );
     };
   inputs = {
