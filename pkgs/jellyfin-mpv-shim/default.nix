@@ -36,7 +36,14 @@ python3Packages.buildPythonApplication rec {
   build-system = with python3Packages; [ setuptools ];
 
   dependencies = with python3Packages; [
-    jellyfin-apiclient-python
+    (jellyfin-apiclient-python.overrideAttrs (old: rec {
+      version = "1.18.0";
+      src = fetchPypi {
+        pname = "jellyfin_apiclient_python";
+        inherit version;
+        hash = "sha256-ij13ER90jjxTlvdlG9mibBvH1zQsxXiZrFnBTPi8u6s=";
+      };
+    }))
     (mpv.overridePythonAttrs (old: {
       doCheck = !stdenv.isDarwin;
     }))
