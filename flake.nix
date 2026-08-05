@@ -84,24 +84,12 @@
             overlays = [ self.overlays.default ];
             config.allowUnfree = true;
           };
+          # Dynamically extract all attributes defined in our overlay
+          myPkgs = self.overlays.default pkgs pkgs;
         in
-        {
-          inherit (pkgs)
-            jellyfin-mpv-shim
-            thaw
-            mole-mac
-            dragterm
-            walavave-trash-cli
-            create-thesis
-            ocrtool-mcp
-            nvim
-            nixln-edit
-            print-cli-rs
-            nerdfont-cheatsheet
-            logseq
-            signal-desktop
-            ;
-        }
+        pkgs.lib.filterAttrs (
+          name: pkg: pkgs.lib.isDerivation pkg && pkgs.lib.meta.availableOn pkgs.stdenv.hostPlatform pkg
+        ) myPkgs
       );
     };
   inputs = {
