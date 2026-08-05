@@ -11,14 +11,14 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "jellyfin-mpv-shim";
-  version = "2.10.0";
+  version = "3.0.0rc11";
   pyproject = true;
 
   # contains shaderpacks
   src = fetchPypi {
     pname = "jellyfin_mpv_shim";
     inherit version;
-    hash = "sha256-ZWmJQJAGAonStZyWww4P+034f2vGnTwLua7KUOqoBBE=";
+    hash = "sha256-zIRXt3dQiERoblXEWxh3kZZh0zEpn+WzKn8Kquu9yuM=";
   };
 
   patches = lib.optionals stdenv.isDarwin [
@@ -119,7 +119,7 @@ python3Packages.buildPythonApplication rec {
       to prevent needless transcoding of your media files on the server. The player also has
       advanced features, such as bulk subtitle updates and launching commands on events.
     '';
-    changelog = "https://github.com/jellyfin/jellyfin-mpv-shim/releases/tag/v${version}";
+    changelog = "https://github.com/jellyfin/jellyfin-mpv-shim/releases/tag/v3.0.0pre11";
     license = with lib.licenses; [
       # jellyfin-mpv-shim
       gpl3Only
