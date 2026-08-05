@@ -14,8 +14,8 @@
       },
       "original": {
         "owner": "arnarg",
+        "ref": "main",
         "repo": "nix-gleam",
-        "rev": "347afd30f4d2701d16913f285f430731343cd96f",
         "type": "github"
       }
     },
@@ -35,9 +35,26 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1785747939,
+        "narHash": "sha256-D740uKsMbgsfK2oaDenJLLPIZfq7W0/g4KN/Fls8eKs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "104240a772428cc2e20d8fd86c9ddbb886bbaff2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "nix-gleam": "nix-gleam"
+        "nix-gleam": "nix-gleam",
+        "nixpkgs": "nixpkgs_2"
       }
     }
   },
