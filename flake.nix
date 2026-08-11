@@ -95,6 +95,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-gleam.url = "github:arnarg/nix-gleam/main";
+    nix-gleam.inputs.nixpkgs.follows = "nixpkgs";
     nixpkgs-logseq.url = "github:NixOS/nixpkgs/ec0c722e017dfccbb2f66a8aafbe003320266d33";
   };
 }
