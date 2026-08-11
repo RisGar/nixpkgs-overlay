@@ -24,7 +24,6 @@ python3Packages.buildPythonApplication rec {
 
   src = builtins.fetchGit {
     url = "https://git.fs.tum.de/drucktool/drucktool-utils.git";
-    ref = "refs/tags/v${version}";
     rev = "062f612e3ecb1aafe59899aaca779acf6b07abee";
   };
 
