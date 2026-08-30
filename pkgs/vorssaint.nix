@@ -11,7 +11,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   src = fetchurl {
     url = "https://github.com/vorssaint/vorssaint-utils/releases/download/v${finalAttrs.version}/Vorssaint-${finalAttrs.version}.dmg";
-    hash = "sha256-Du2egEkRqHDGhwXl3jH3jn285AiVXvJX+NiObO49TVI=";
+    hash = "sha256-JwLfGUgr6kKOkPKT5ZBcAg5KXA0575gqtSSj6YdUb4c=";
   };
 
   sourceRoot = ".";
