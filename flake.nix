@@ -29,6 +29,7 @@
         nerdfont-cheatsheet = prev.callPackage ./pkgs/nerdfont-cheatsheet.nix {
           nix-gleam = nix-gleam;
         };
+        vorssaint = prev.callPackage ./pkgs/vorssaint.nix { };
         # TODO: detexify-next
 
         logseq = (
