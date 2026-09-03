@@ -21,14 +21,14 @@ python3Packages.buildPythonApplication rec {
     hash = "sha256-zIRXt3dQiERoblXEWxh3kZZh0zEpn+WzKn8Kquu9yuM=";
   };
 
-  patches = lib.optionals stdenv.isDarwin [
+  patches = lib.optionals stdenv.hostPlatform.isDarwin [
     ./darwin-posix-config.patch
   ];
 
   nativeBuildInputs = [
     gobject-introspection
   ]
-  ++ lib.optionals stdenv.isLinux [
+  ++ lib.optionals stdenv.hostPlatform.isLinux [
     copyDesktopItems
     wrapGAppsHook3
   ];
