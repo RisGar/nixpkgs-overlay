@@ -8,7 +8,7 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "thaw-bar";
-  version = "2.0.0-rc.4";
+  version = "2.0.1";
 
   src = fetchurl {
     url = "https://github.com/thaw-app/Thaw/releases/download/${finalAttrs.version}/Thaw_${finalAttrs.version}.zip";
