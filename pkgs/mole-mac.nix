@@ -6,13 +6,13 @@
 
 buildGoModule (finalAttrs: {
   pname = "mole-mac";
-  version = "1.50.0";
+  version = "1.53.0";
 
   src = fetchFromGitHub {
     owner = "tw93";
     repo = "Mole";
-    rev = "V${finalAttrs.version}";
-    hash = "sha256-OM5OluR5PDQFIKpjPPhkooPNlDNisjhjfMU9yGIxAg8=";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-q0qWuQuEgA48MsFaNMLn66pN3Zk2o9Xh/oHl1Im2QlA=";
   };
 
   vendorHash = "sha256-Q7VzGJ1bGAyMi2Ih3LvI92lCVqxKIyr7H89LAFczNbo=";
