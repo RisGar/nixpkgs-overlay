@@ -32,6 +32,7 @@
         };
         vorssaint = prev.callPackage ./pkgs/vorssaint.nix { };
         devonthink = prev.callPackage ./pkgs/devonthink.nix { };
+        reasonix = prev.callPackage ./pkgs/reasonix.nix { };
         # TODO: detexify-next
 
         logseq = (
