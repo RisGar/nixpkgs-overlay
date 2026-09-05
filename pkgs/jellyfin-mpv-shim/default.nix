@@ -11,7 +11,7 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "jellyfin-mpv-shim";
-  version = "3.0.0rc11";
+  version = "3.0.0rc14";
   pyproject = true;
 
   # contains shaderpacks
@@ -36,14 +36,7 @@ python3Packages.buildPythonApplication rec {
   build-system = with python3Packages; [ setuptools ];
 
   dependencies = with python3Packages; [
-    (jellyfin-apiclient-python.overrideAttrs (old: rec {
-      version = "1.18.0";
-      src = fetchPypi {
-        pname = "jellyfin_apiclient_python";
-        inherit version;
-        hash = "sha256-ij13ER90jjxTlvdlG9mibBvH1zQsxXiZrFnBTPi8u6s=";
-      };
-    }))
+    jellyfin-apiclient-python
     (mpv.overridePythonAttrs (old: {
       doCheck = !stdenv.isDarwin;
     }))
@@ -76,7 +69,7 @@ python3Packages.buildPythonApplication rec {
       --replace-fail "python-mpv" "mpv" \
       --replace-fail "mpv-jsonipc" "python_mpv_jsonipc"
   ''
-  + lib.optionalString stdenv.isDarwin ''
+  + lib.optionalString stdenv.hostPlatform.isDarwin ''
     # Patch pack-next.json for macOS compatibility if it exists
     find . -name "pack-next.json" -exec sed -i 's/"gpu_api", "opengl"/"gpu_api", "vulkan"/' {} + || true
     find . -name "pack-next.json" -exec sed -i '/"dither-fruit-default",/d' {} + || true
@@ -84,7 +77,7 @@ python3Packages.buildPythonApplication rec {
   '';
 
   # Install all the icons for the desktop item
-  postInstall = lib.optionalString stdenv.isLinux ''
+  postInstall = lib.optionalString stdenv.hostPlatform.isLinux ''
     for s in 16 32 48 64 128 256; do
       mkdir -p $out/share/icons/hicolor/''${s}x''${s}/apps
       ln -s $out/${python3Packages.python.sitePackages}/jellyfin_mpv_shim/integration/jellyfin-''${s}.png \
@@ -93,7 +86,7 @@ python3Packages.buildPythonApplication rec {
   '';
 
   # needed for pystray to access appindicator using GI
-  preFixup = lib.optionalString stdenv.isLinux ''
+  preFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
     makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
   '';
 
@@ -101,7 +94,7 @@ python3Packages.buildPythonApplication rec {
 
   pythonImportsCheck = [ "jellyfin_mpv_shim" ];
 
-  desktopItems = lib.optionals stdenv.isLinux [
+  desktopItems = lib.optionals stdenv.hostPlatform.ishostPlatform.Linux [
     (makeDesktopItem {
       name = "jellyfin-mpv-shim";
       exec = "jellyfin-mpv-shim";
