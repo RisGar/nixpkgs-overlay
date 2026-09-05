@@ -121,6 +121,24 @@ def parse_fetchpypi(content):
     return (pname.group(1) if pname else None), (version.group(1) if version else None)
 
 
+def declared_rev(content, version):
+    """The rev/tag a file pins through its `version`, e.g. "v1.38.1".
+
+    Packages commonly write `rev = "v${version}"` or `tag = "v${version}"`, so
+    the rev the file means is derived from the version it declares -- not from
+    whatever the default branch points at. Returns None when the rev is spelled
+    out literally instead.
+    """
+    if not version:
+        return None
+    match = re.search(
+        r'(?:rev|tag)\s*=\s*"([^"]*)\$\{[^}]*version[^}]*\}([^"]*)"', content
+    )
+    if not match:
+        return None
+    return f"{match.group(1)}{version}{match.group(2)}"
+
+
 def prefetch_url_hash(url):
     cmd = ["nix", "store", "prefetch-file", "--json", url]
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
@@ -293,7 +311,14 @@ def update_file(filepath, pkg_data):
                 else get_latest_release(owner, repo)
             )
             if not latest_rev and not is_commit:
-                latest_rev = get_latest_commit(owner, repo)
+                # Repos that publish no GitHub releases: re-prefetch the rev the
+                # file declares (`rev`/`tag` interpolated from `version`) rather
+                # than the default-branch head. The head is not what such a file
+                # points at, and because prefetching realises the resulting
+                # store path, a wrong hash would keep being reused silently.
+                latest_rev = declared_rev(content, current_version) or get_latest_commit(
+                    owner, repo
+                )
             if latest_rev and not is_commit and is_older_version(latest_rev, current_rev):
                 print(
                     f"[{filepath}] Skipping {owner}/{repo}: latest release "
