@@ -8,8 +8,6 @@
   makeWrapper,
   ripgrep,
   bubblewrap,
-  versionCheckHook,
-  versionCheckHomeHook,
 }:
 
 # Upstream rewrote reasonix from TypeScript to Go in 1.0.0.
@@ -41,10 +39,6 @@ buildGoModule rec {
   doCheck = true;
 
   doInstallCheck = true;
-  nativeInstallCheckInputs = [
-    versionCheckHook
-    versionCheckHomeHook
-  ];
 
   postFixup = ''
     wrapProgram $out/bin/reasonix \
