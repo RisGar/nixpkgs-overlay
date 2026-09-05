@@ -1,67 +1,31 @@
 {
-  lib,
-  stdenv,
-  bash,
-  buildGoModule,
-  codegraph,
+  callPackage,
   fetchFromGitHub,
-  makeWrapper,
-  ripgrep,
-  bubblewrap,
+  lib,
 }:
 
-# Upstream rewrote reasonix from TypeScript to Go in 1.0.0.
-buildGoModule rec {
-  pname = "reasonix";
-  version = "1.38.1";
-
+let
   src = fetchFromGitHub {
-    owner = "esengine";
-    repo = "DeepSeek-Reasonix";
-    tag = "v${version}";
-    hash = "sha256-QagjoaQe/p+36eSr4PON45MPoviJe8ngQxwfadYHZgA=";
+    owner = "numtide";
+    repo = "llm-agents.nix";
+    rev = "bffbfec7ef13d6f4b925ad20046133d6b49ac9e0";
+    hash = "sha256-zUTsGy8oiUo4qaeDR5qZ1y+nSUyp+3ZBceW9slrnbPc=";
   };
-
-  vendorHash = "sha256-PHC3UYwuyGRamhmZW29BgKgphT9fZsg2TqV8dEUxTZw=";
-
-  subPackages = [ "cmd/reasonix" ];
-
-  nativeBuildInputs = [ makeWrapper ];
-
-  env.CGO_ENABLED = "0";
-
-  ldflags = [
-    "-s"
-    "-w"
-    "-X main.version=v${version}"
-  ];
-
-  doCheck = true;
-
-  doInstallCheck = true;
-  postFixup = ''
-    wrapProgram $out/bin/reasonix \
-      --prefix PATH : ${
-        lib.makeBinPath (
-          [
-            bash
-            codegraph
-            ripgrep
-          ]
-          ++ lib.optionals stdenv.hostPlatform.isLinux [
-            bubblewrap
-          ]
-        )
+in
+callPackage "${src}/packages/reasonix/package.nix" {
+  flake = {
+    lib = lib.extend (
+      _final: prev: {
+        maintainers = prev.maintainers // {
+          arch-fan = {
+            github = "arch-fan";
+            githubId = 55891793;
+            name = "arch-fan";
+          };
+        };
       }
-  '';
-
-  meta = {
-    description = "DeepSeek-native AI coding agent for your terminal";
-    homepage = "https://github.com/esengine/DeepSeek-Reasonix";
-    license = lib.licenses.mit;
-    changelog = "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/v${version}";
-    sourceProvenance = with lib.sourceTypes; [ fromSource ];
-    mainProgram = "reasonix";
-    platforms = lib.platforms.unix;
+    );
   };
+
+  versionCheckHomeHook = callPackage "${src}/packages/versionCheckHomeHook/package.nix" { };
 }

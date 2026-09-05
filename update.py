@@ -122,7 +122,9 @@ def is_older_version(candidate, current):
     "3.0.0-rc1"); anything else (commit hashes, "nightly") keeps the
     previous update behavior.
     """
-    if not VERSION_TAG_RE.match(str(candidate)) or not VERSION_TAG_RE.match(str(current)):
+    if not VERSION_TAG_RE.match(str(candidate)) or not VERSION_TAG_RE.match(
+        str(current)
+    ):
         return False
     cand, cur = version_key(candidate), version_key(current)
     for i in range(max(len(cand), len(cur))):
@@ -379,10 +381,14 @@ def update_file(filepath, pkg_data):
                 # than the default-branch head. The head is not what such a file
                 # points at, and because prefetching realises the resulting
                 # store path, a wrong hash would keep being reused silently.
-                latest_rev = declared_rev(content, current_version) or get_latest_commit(
-                    owner, repo
-                )
-            if latest_rev and not is_commit and is_older_version(latest_rev, current_rev):
+                latest_rev = declared_rev(
+                    content, current_version
+                ) or get_latest_commit(owner, repo)
+            if (
+                latest_rev
+                and not is_commit
+                and is_older_version(latest_rev, current_rev)
+            ):
                 print(
                     f"[{filepath}] Skipping {owner}/{repo}: latest release "
                     f"{latest_rev} is older than current {current_rev} "
@@ -392,16 +398,30 @@ def update_file(filepath, pkg_data):
             if latest_rev and latest_rev != current_rev:
                 # A release tag carries the version too; derive it so the
                 # version attribute stays in sync when the rev is written
-                # indirectly, e.g. rev = "v${finalAttrs.version}".
+                # indirectly, e.g. rev = "v${finalAttrs.version}". The tag's
+                # prefix is stripped case-insensitively: upstreams tag both
+                # "v1.2.3" and "V1.2.3", and a version that keeps the tag's own
+                # capital (V1.54.0) is not a version -- written into a file whose
+                # rev is spelled "v${version}" it produces a rev that no longer
+                # exists upstream, and the tag is the only thing that ever had
+                # that spelling.
                 if VERSION_TAG_RE.match(latest_rev):
-                    latest_version = latest_rev.lstrip("v")
-                new_hash = prefetch_hash(owner, repo, latest_rev)
+                    latest_version = latest_rev.lstrip("vV")
+                # Prefetch only when the file pins the hash this would rewrite:
+                # a file whose derivation src comes from somewhere else -- a
+                # wrapper that callPackages another repo's package.nix, say --
+                # has nothing to learn from this src, and the prefetch would
+                # download it for nothing.
+                if current_hash and f'hash = "{current_hash}"' in content:
+                    new_hash = prefetch_hash(owner, repo, latest_rev)
 
                 # Rust packages that vendor their Cargo.lock for
                 # importCargoLock (pure eval cannot read it out of the fetched
                 # src) must keep the vendored copy in sync with the src rev;
                 # cargoRoot says where upstream keeps it.
-                lockfile = re.search(r"lockFile = \./([A-Za-z0-9_.-]+Cargo\.lock)", content)
+                lockfile = re.search(
+                    r"lockFile = \./([A-Za-z0-9_.-]+Cargo\.lock)", content
+                )
                 if lockfile:
                     cargo_root = re.search(r'cargoRoot = "([^"]+)"', content)
                     root_path = (cargo_root.group(1) + "/") if cargo_root else ""
@@ -409,14 +429,20 @@ def update_file(filepath, pkg_data):
                         f"https://raw.githubusercontent.com/{owner}/{repo}/{latest_rev}"
                         f"/{root_path}Cargo.lock"
                     )
-                    dest = os.path.join(os.path.dirname(filepath) or ".", lockfile.group(1))
+                    dest = os.path.join(
+                        os.path.dirname(filepath) or ".", lockfile.group(1)
+                    )
                     try:
-                        req = urllib.request.Request(lock_url, headers={"User-Agent": "nix-update-script"})
+                        req = urllib.request.Request(
+                            lock_url, headers={"User-Agent": "nix-update-script"}
+                        )
                         with urllib.request.urlopen(req, timeout=30) as response:
                             lock_data = response.read()
                         with open(dest, "wb") as f:
                             f.write(lock_data)
-                        print(f"[{filepath}] Updated vendored Cargo.lock from rev {latest_rev}")
+                        print(
+                            f"[{filepath}] Updated vendored Cargo.lock from rev {latest_rev}"
+                        )
                     except Exception as e:
                         print(f"[{filepath}] Failed to update vendored Cargo.lock: {e}")
 
@@ -452,8 +478,10 @@ def update_file(filepath, pkg_data):
             if url and current_rev:
                 tag, latest_rev = get_latest_git_tag(url)
                 if tag and latest_rev != current_rev:
-                    latest_version = tag.lstrip("v")
-                    if current_version and is_older_version(latest_version, current_version):
+                    latest_version = tag.lstrip("vV")
+                    if current_version and is_older_version(
+                        latest_version, current_version
+                    ):
                         print(
                             f"[{filepath}] Skipping: latest tag {tag} is older "
                             f"than current {current_version} (prerelease pinned?)"
@@ -461,14 +489,21 @@ def update_file(filepath, pkg_data):
                         latest_version = None
                         latest_rev = None
 
-        elif src.get("url") and "github.com/" in src.get("url") and "/releases/download/" in src.get("url") and current_version:
+        elif (
+            src.get("url")
+            and "github.com/" in src.get("url")
+            and "/releases/download/" in src.get("url")
+            and current_version
+        ):
             url_str = src.get("url")
-            match = re.search(r"https://github\.com/([^/]+)/([^/]+)/releases/download/", url_str)
+            match = re.search(
+                r"https://github\.com/([^/]+)/([^/]+)/releases/download/", url_str
+            )
             if match:
                 owner, repo = match.group(1), match.group(2)
                 latest_tag = get_latest_release(owner, repo)
                 if latest_tag:
-                    latest_version = latest_tag.lstrip("v")
+                    latest_version = latest_tag.lstrip("vV")
                     if latest_version != current_version:
                         if is_older_version(latest_version, current_version):
                             print(
@@ -494,17 +529,24 @@ def update_file(filepath, pkg_data):
         print(f"[{filepath}] Failed to fetch updates: {e}")
         return
 
+    # Every replacement below is applied -- and announced -- only when the
+    # pinned string it targets is really in the file. A file that carries the
+    # value indirectly (rev = "v${finalAttrs.version}", a src pinned by another
+    # repo) has its update handled where that value is written, or nowhere at
+    # all; announcing it here would claim an edit the file never receives.
     if latest_version and current_version and latest_version != current_version:
-        print(f"[{filepath}] Updating version {current_version} -> {latest_version}...")
-        new_content = new_content.replace(
-            f'version = "{current_version}"', f'version = "{latest_version}"'
-        )
+        pinned = f'version = "{current_version}"'
+        if pinned in new_content:
+            print(
+                f"[{filepath}] Updating version {current_version} -> {latest_version}..."
+            )
+            new_content = new_content.replace(pinned, f'version = "{latest_version}"')
 
     if latest_rev and current_rev and latest_rev != current_rev:
-        print(f"[{filepath}] Updating rev {current_rev} -> {latest_rev}...")
-        new_content = new_content.replace(
-            f'rev = "{current_rev}"', f'rev = "{latest_rev}"'
-        )
+        pinned = f'rev = "{current_rev}"'
+        if pinned in new_content:
+            print(f"[{filepath}] Updating rev {current_rev} -> {latest_rev}...")
+            new_content = new_content.replace(pinned, f'rev = "{latest_rev}"')
 
     # A release asset whose name changes by more than the version has to be
     # renamed in the file too: the version itself is written as
@@ -518,12 +560,11 @@ def update_file(filepath, pkg_data):
         )
         new_content = new_content.replace(asset_rename[0], asset_rename[1])
 
-    if new_hash and current_hash:
-        if new_hash != current_hash:
+    if new_hash and current_hash and new_hash != current_hash:
+        pinned = f'hash = "{current_hash}"'
+        if pinned in new_content:
             print(f"[{filepath}] Updating hash {current_hash} -> {new_hash}...")
-        new_content = new_content.replace(
-            f'hash = "{current_hash}"', f'hash = "{new_hash}"'
-        )
+            new_content = new_content.replace(pinned, f'hash = "{new_hash}"')
 
     # Re-check the fetched-dependency hashes (go modules, cargo, npm) of the
     # updated content. They are not covered by any upstream metadata: a
@@ -537,9 +578,7 @@ def update_file(filepath, pkg_data):
         fresh = probe_fod_hash(filepath, pkg_data.get("name"), attr, new_content)
         if fresh and fresh != pinned.group(1):
             print(f"[{filepath}] Updating {attr} {pinned.group(1)} -> {fresh}...")
-            new_content = new_content.replace(
-                pinned.group(0), f'{attr} = "{fresh}"'
-            )
+            new_content = new_content.replace(pinned.group(0), f'{attr} = "{fresh}"')
 
     if content != new_content:
         with open(filepath, "w") as f:
@@ -547,7 +586,7 @@ def update_file(filepath, pkg_data):
 
 
 def main():
-    print("Evaluating packages via Nix AST...")
+    print("Evaluating packages")
     all_data = get_all_pkg_info()
     if not all_data:
         return

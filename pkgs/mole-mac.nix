@@ -6,12 +6,14 @@
 
 buildGoModule (finalAttrs: {
   pname = "mole-mac";
-  version = "V1.54.0";
+  version = "1.54.0";
 
   src = fetchFromGitHub {
     owner = "tw93";
     repo = "Mole";
-    rev = "v${finalAttrs.version}";
+    # Mole's tags are capital-V ("V1.54.0"); the lowercase prefix here produced
+    # "vV1.54.0", which the archive URL does not resolve at all.
+    rev = "V${finalAttrs.version}";
     hash = "sha256-L4DIFBp4n8l5Y8/Zs6ddDnmJz0dB2fYolhUo1dUEOXU=";
   };
 
