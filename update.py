@@ -77,15 +77,45 @@ def prefetch_hash(owner, repo, rev):
     return data["hash"]
 
 
-def get_latest_pypi(pname):
-    url = f"https://pypi.org/pypi/{pname}/json"
-    req = urllib.request.Request(url, headers={"User-Agent": "nix-update-script"})
+def get_pypi_sdist(pname, version=None):
+    """Return (version, sdist_url) for a PyPI project's source tarball.
+
+    Without `version` the newest release is used. Returns (None, None) if the
+    project or its sdist cannot be resolved (offline, renamed, wheels only).
+    """
+    endpoint = (
+        f"https://pypi.org/pypi/{pname}/{version}/json"
+        if version
+        else f"https://pypi.org/pypi/{pname}/json"
+    )
+    req = urllib.request.Request(endpoint, headers={"User-Agent": "nix-update-script"})
     try:
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read())
-            return data["info"]["version"]
     except Exception:
-        return None
+        return None, None
+    resolved = version or data["info"]["version"]
+    for f in data["urls"]:
+        if f.get("packagetype") == "sdist" and f["filename"].endswith(".tar.gz"):
+            return resolved, f["url"]
+    return resolved, None
+
+
+def parse_fetchpypi(content):
+    """Extract (pname, version) from the `fetchPypi { ... }` call in a file.
+
+    The fetchPypi pname is the *PyPI project name*, which often differs from
+    the derivation's pname (e.g. jellyfin_mpv_shim vs jellyfin-mpv-shim) and
+    is what the sdist URL is built from. `version` is None when the call uses
+    `inherit version;`.
+    """
+    match = re.search(r"fetchPypi\s*\{([^{}]*)\}", content, re.S)
+    if not match:
+        return None, None
+    body = match.group(1)
+    pname = re.search(r'pname\s*=\s*"([^"]+)"', body)
+    version = re.search(r'version\s*=\s*"([^"]+)"', body)
+    return (pname.group(1) if pname else None), (version.group(1) if version else None)
 
 
 def prefetch_url_hash(url):
@@ -233,20 +263,30 @@ def update_file(filepath, pkg_data):
                     except Exception as e:
                         print(f"[{filepath}] Failed to update vendored Cargo.lock: {e}")
 
-        elif "fetchPypi" in content and pkg_data.get("pname") and current_hash:
-            pname = pkg_data["pname"]
-            latest_version = get_latest_pypi(pname.replace("_", "-"))
-            if latest_version and current_version and latest_version != current_version:
-                if is_older_version(latest_version, current_version):
-                    print(
-                        f"[{filepath}] Skipping {pname}: latest {latest_version} "
-                        f"is older than current {current_version} "
-                        "(prerelease pinned?)"
-                    )
-                    latest_version = None
-                else:
-                    url = f"https://pypi.io/packages/source/{pname[0]}/{pname}/{pname}-{latest_version}.tar.gz"
-                    new_hash = prefetch_url_hash(url)
+        elif "fetchPypi" in content and current_hash:
+            pypi_pname, pinned_version = parse_fetchpypi(content)
+            pypi_pname = pypi_pname or (pkg_data.get("pname") or "").replace("-", "_")
+            pinned_version = pinned_version or current_version
+            if pypi_pname and pinned_version:
+                latest_version, sdist_url = get_pypi_sdist(pypi_pname)
+                if latest_version is not None:
+                    if latest_version == pinned_version:
+                        # Nothing to bump, but the hash is still re-checked
+                        # below: PyPI allows a yanked release to be
+                        # re-uploaded with different contents, which silently
+                        # invalidates the hash pinned for that version.
+                        latest_version = None
+                    elif is_older_version(latest_version, pinned_version):
+                        print(
+                            f"[{filepath}] Skipping {pypi_pname}: latest {latest_version} "
+                            f"is older than current {pinned_version} "
+                            "(prerelease pinned?)"
+                        )
+                        latest_version, sdist_url = None, None
+                if sdist_url:
+                    new_hash = prefetch_url_hash(sdist_url)
+                    if new_hash == current_hash:
+                        new_hash = None
 
         elif ("builtins.fetchGit" in content or "fetchGit" in content) and (
             src.get("url") or src.get("urls")
@@ -300,6 +340,8 @@ def update_file(filepath, pkg_data):
         )
 
     if new_hash and current_hash:
+        if new_hash != current_hash:
+            print(f"[{filepath}] Updating hash {current_hash} -> {new_hash}...")
         new_content = new_content.replace(
             f'hash = "{current_hash}"', f'hash = "{new_hash}"'
         )

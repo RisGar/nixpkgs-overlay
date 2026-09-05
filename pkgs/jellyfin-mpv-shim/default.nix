@@ -18,7 +18,7 @@ python3Packages.buildPythonApplication rec {
   src = fetchPypi {
     pname = "jellyfin_mpv_shim";
     inherit version;
-    hash = "sha256-d4RN4zNZYGHysLF8iAS8gESyxDLPAC4U8ZqJ5wJWyVM=";
+    hash = "sha256-K4dmJ7/aNsxEWKLXY8RNvszmA8FstzD/Kh7M0wkU/Rs=";
   };
 
   patches = lib.optionals stdenv.hostPlatform.isDarwin [
