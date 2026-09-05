@@ -7,11 +7,11 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "vorssaint";
-  version = "3.3.2";
+  version = "3.3.3";
 
   src = fetchurl {
     url = "https://github.com/vorssaint/vorssaint-utils/releases/download/v${finalAttrs.version}/Vorssaint-${finalAttrs.version}.dmg";
-    hash = "sha256-f6+LVXU6TzTMzNZcIMLuhH2I43QVnfu5Xu3NUKpTQcs=";
+    hash = "sha256-BJIkSKFWSq52fTM2L7ta/I3TMdZcaYIxGhZk7KFpDJ4=";
   };
 
   sourceRoot = ".";
@@ -28,8 +28,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   '';
 
   meta = {
-    description = "Powerful menu bar manager for macOS";
-    homepage = "https://github.com/stonerl/Thaw";
+    description = "Free and open-source macOS menu bar toolkit";
+    homepage = "https://vorssaint.com/";
     license = lib.licenses.gpl3;
     platforms = lib.platforms.darwin;
     sourceProvenance = with lib.sourceTypes; [ binaryNativeCode ];
