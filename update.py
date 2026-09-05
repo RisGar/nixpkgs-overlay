@@ -29,6 +29,47 @@ def get_latest_commit(owner, repo):
         return None
 
 
+def version_key(version):
+    """Sortable key for a version string (semver-ish).
+
+    Components are split on ".", "-" and "+" and mapped to (number, suffix)
+    pairs, so "3.0.0" > "2.1.1" and "1.2" < "1.2.1". Suffixes sort before
+    "~" (the stand-in for a missing suffix), so prereleases compare older
+    than the release they precede: "3.0.0-rc1" < "3.0.0". Purely
+    alphabetic leading labels like "release-" are ignored.
+    """
+    key = []
+    for comp in re.split(r"[.\-+]", str(version).lower().lstrip("vV")):
+        if not comp:
+            continue
+        m = re.match(r"(\d*)(.*)", comp)
+        key.append((int(m.group(1) or "0"), m.group(2) or "~"))
+    while key and key[0][0] == 0 and key[0][1] != "~":
+        key.pop(0)
+    return key
+
+
+VERSION_TAG_RE = re.compile(r"^[vV]?\d+\.\d+")
+
+
+def is_older_version(candidate, current):
+    """True if `candidate` is strictly older than `current` (semver-ish).
+
+    Only compares strings that look like version tags ("3.0.0", "v2.1.1",
+    "3.0.0-rc1"); anything else (commit hashes, "nightly") keeps the
+    previous update behavior.
+    """
+    if not VERSION_TAG_RE.match(str(candidate)) or not VERSION_TAG_RE.match(str(current)):
+        return False
+    cand, cur = version_key(candidate), version_key(current)
+    for i in range(max(len(cand), len(cur))):
+        a = cand[i] if i < len(cand) else (0, "~")
+        b = cur[i] if i < len(cur) else (0, "~")
+        if a != b:
+            return a < b
+    return False
+
+
 def prefetch_hash(owner, repo, rev):
     cmd = ["nix", "run", "nixpkgs#nix-prefetch-github", "--", owner, repo, "--rev", rev]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -60,10 +101,8 @@ def get_latest_git_tag(url):
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         return None, None
-    lines = result.stdout.strip().split("\n")
-    best_tag = None
-    best_rev = None
-    for line in lines:
+    tags = []
+    for line in result.stdout.strip().split("\n"):
         if not line:
             continue
         parts = line.split("\t")
@@ -72,10 +111,11 @@ def get_latest_git_tag(url):
         rev, ref = parts
         if ref.endswith("^{}"):
             continue
-        tag = ref.replace("refs/tags/", "")
-        # Very simple version comparison
-        best_tag = tag
-        best_rev = rev
+        tags.append((ref.replace("refs/tags/", ""), rev))
+    if not tags:
+        return None, None
+    # Highest version wins, so we never "update" to an older tag.
+    best_tag, best_rev = max(tags, key=lambda t: version_key(t[0]))
     return best_tag, best_rev
 
 
@@ -155,7 +195,19 @@ def update_file(filepath, pkg_data):
             )
             if not latest_rev and not is_commit:
                 latest_rev = get_latest_commit(owner, repo)
+            if latest_rev and not is_commit and is_older_version(latest_rev, current_rev):
+                print(
+                    f"[{filepath}] Skipping {owner}/{repo}: latest release "
+                    f"{latest_rev} is older than current {current_rev} "
+                    "(prerelease pinned?)"
+                )
+                latest_rev = None
             if latest_rev and latest_rev != current_rev:
+                # A release tag carries the version too; derive it so the
+                # version attribute stays in sync when the rev is written
+                # indirectly, e.g. rev = "v${finalAttrs.version}".
+                if VERSION_TAG_RE.match(latest_rev):
+                    latest_version = latest_rev.lstrip("v")
                 new_hash = prefetch_hash(owner, repo, latest_rev)
 
                 # Rust packages that vendor their Cargo.lock for
@@ -185,8 +237,16 @@ def update_file(filepath, pkg_data):
             pname = pkg_data["pname"]
             latest_version = get_latest_pypi(pname.replace("_", "-"))
             if latest_version and current_version and latest_version != current_version:
-                url = f"https://pypi.io/packages/source/{pname[0]}/{pname}/{pname}-{latest_version}.tar.gz"
-                new_hash = prefetch_url_hash(url)
+                if is_older_version(latest_version, current_version):
+                    print(
+                        f"[{filepath}] Skipping {pname}: latest {latest_version} "
+                        f"is older than current {current_version} "
+                        "(prerelease pinned?)"
+                    )
+                    latest_version = None
+                else:
+                    url = f"https://pypi.io/packages/source/{pname[0]}/{pname}/{pname}-{latest_version}.tar.gz"
+                    new_hash = prefetch_url_hash(url)
 
         elif ("builtins.fetchGit" in content or "fetchGit" in content) and (
             src.get("url") or src.get("urls")
@@ -196,6 +256,13 @@ def update_file(filepath, pkg_data):
                 tag, latest_rev = get_latest_git_tag(url)
                 if tag and latest_rev != current_rev:
                     latest_version = tag.lstrip("v")
+                    if current_version and is_older_version(latest_version, current_version):
+                        print(
+                            f"[{filepath}] Skipping: latest tag {tag} is older "
+                            f"than current {current_version} (prerelease pinned?)"
+                        )
+                        latest_version = None
+                        latest_rev = None
 
         elif src.get("url") and "github.com/" in src.get("url") and "/releases/download/" in src.get("url") and current_version:
             url_str = src.get("url")
@@ -206,8 +273,16 @@ def update_file(filepath, pkg_data):
                 if latest_tag:
                     latest_version = latest_tag.lstrip("v")
                     if latest_version != current_version:
-                        new_url = url_str.replace(current_version, latest_version)
-                        new_hash = prefetch_url_hash(new_url)
+                        if is_older_version(latest_version, current_version):
+                            print(
+                                f"[{filepath}] Skipping: latest release "
+                                f"{latest_tag} is older than current "
+                                f"{current_version} (prerelease pinned?)"
+                            )
+                            latest_version = None
+                        else:
+                            new_url = url_str.replace(current_version, latest_version)
+                            new_hash = prefetch_url_hash(new_url)
     except Exception as e:
         print(f"[{filepath}] Failed to fetch updates: {e}")
         return

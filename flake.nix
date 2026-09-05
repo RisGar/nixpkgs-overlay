@@ -5,7 +5,6 @@
       self,
       nixpkgs,
       nix-gleam,
-      nixpkgs-logseq,
       ...
     }:
     let
@@ -16,6 +15,7 @@
       overlays.default = final: prev: {
         jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
         lightning-matrix-client = prev.callPackage ./pkgs/lightning-matrix-client { };
+        logseq = prev.callPackage ./pkgs/logseq_2 { }; # TODO: wait for https://github.com/NixOS/nixpkgs/pull/516682 to be merged
         thaw = prev.callPackage ./pkgs/thaw.nix { };
         mole-mac = prev.callPackage ./pkgs/mole-mac.nix { };
         dragterm = prev.callPackage ./pkgs/dragterm.nix { };
@@ -27,20 +27,11 @@
         nvim = prev.callPackage ./pkgs/nvim-config.nix { };
         nixln-edit = prev.callPackage ./pkgs/nixln-edit.nix { };
         print-cli-rs = prev.callPackage ./pkgs/print-cli-rs.nix { };
-        nerdfont-cheatsheet = prev.callPackage ./pkgs/nerdfont-cheatsheet.nix {
-          nix-gleam = nix-gleam;
-        };
+        nerdfont-cheatsheet = prev.callPackage ./pkgs/nerdfont-cheatsheet.nix { nix-gleam = nix-gleam; };
         vorssaint = prev.callPackage ./pkgs/vorssaint.nix { };
         devonthink = prev.callPackage ./pkgs/devonthink.nix { };
         reasonix = prev.callPackage ./pkgs/reasonix.nix { };
         # TODO: detexify-next
-
-        logseq = (
-          let
-            pkgs' = import nixpkgs-logseq { system = prev.stdenv.hostPlatform.system; }; # TODO: wait for https://github.com/NixOS/nixpkgs/pull/516682
-          in
-          pkgs'.logseq
-        );
 
         signal-desktop = prev.signal-desktop.override {
           withAppleEmojis = true;
@@ -100,6 +91,5 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-gleam.url = "github:arnarg/nix-gleam/main";
     nix-gleam.inputs.nixpkgs.follows = "nixpkgs";
-    nixpkgs-logseq.url = "github:NixOS/nixpkgs/ec0c722e017dfccbb2f66a8aafbe003320266d33";
   };
 }

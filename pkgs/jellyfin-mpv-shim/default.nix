@@ -11,7 +11,7 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "jellyfin-mpv-shim";
-  version = "3.0.0rc14";
+  version = "3.0.0";
   pyproject = true;
 
   # contains shaderpacks
