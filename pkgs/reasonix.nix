@@ -19,10 +19,10 @@ buildGoModule rec {
     owner = "esengine";
     repo = "DeepSeek-Reasonix";
     tag = "v${version}";
-    hash = "sha256-CMincjOwzQKznTA6zTJr81l5AIBTwA98rITTT0a8OuM=";
+    hash = "sha256-QagjoaQe/p+36eSr4PON45MPoviJe8ngQxwfadYHZgA=";
   };
 
-  vendorHash = "sha256-xUd3Sug9eMPRnfHY6BZwAXgIkcJP+Qy/V5aueNk/E+I=";
+  vendorHash = "sha256-PHC3UYwuyGRamhmZW29BgKgphT9fZsg2TqV8dEUxTZw=";
 
   subPackages = [ "cmd/reasonix" ];
 
