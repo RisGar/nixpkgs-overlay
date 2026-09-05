@@ -44,13 +44,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "lightning-matrix-client";
-  version = "0.9.0";
+  version = "0.9.2";
 
   src = fetchFromGitHub {
     owner = "Mizerd";
     repo = "lightning";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-VEM+RauvigJETZxguuiu6C8JU/HTXYV9faA+Y4ld9vM=";
+    hash = "sha256-54TziWfV9WGkEvgXwLuuXwMnkqg9xOaYCgUIq3sgj0g=";
   };
 
   cargoRoot = "rust";
