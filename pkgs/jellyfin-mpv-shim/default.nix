@@ -94,7 +94,7 @@ python3Packages.buildPythonApplication rec {
 
   pythonImportsCheck = [ "jellyfin_mpv_shim" ];
 
-  desktopItems = lib.optionals stdenv.hostPlatform.ishostPlatform.Linux [
+  desktopItems = lib.optionals stdenv.hostPlatform.isLinux [
     (makeDesktopItem {
       name = "jellyfin-mpv-shim";
       exec = "jellyfin-mpv-shim";
