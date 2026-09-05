@@ -15,7 +15,7 @@ buildGoModule (finalAttrs: {
     hash = "sha256-L4DIFBp4n8l5Y8/Zs6ddDnmJz0dB2fYolhUo1dUEOXU=";
   };
 
-  vendorHash = "sha256-ihHLjIYOcJD8ahUbGzmhxCvCQnOoSnT3RH1haFegKcw=";
+  vendorHash = "sha256-a4KJiQwfOUcT+dLfgg13iuLOZx8pqUQVVK6QERbTWPQ=";
 
   subPackages = [
     "cmd/analyze"

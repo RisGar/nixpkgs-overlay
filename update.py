@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+import base64
 import glob
 import json
 import os
-import subprocess
-import urllib.request
 import re
+import shutil
+import subprocess
+import tempfile
+import urllib.request
 
 
 def get_latest_release(owner, repo):
@@ -123,6 +126,72 @@ def prefetch_url_hash(url):
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode == 0:
         return json.loads(result.stdout)["hash"]
+    return None
+
+
+# Fixed-output hashes that cover a fetched dependency tree. Unlike `src`, their
+# values cannot be derived from upstream metadata -- nix has to run the fetcher
+# to learn them. Each attribute maps to the markers its derivation name carries
+# (see nixpkgs' build-support/{go,rust,node}), so a mismatch reported for some
+# *other* fixed-output derivation -- a stale `src`, say -- is not mistaken for
+# the one being probed.
+FOD_HASH_ATTRS = {
+    "vendorHash": ("go-modules",),
+    "cargoHash": ("-vendor", "cargo-deps"),
+    "npmDepsHash": ("npm-deps",),
+}
+
+# A valid sha256 SRI that can never match, used to make nix report the hash it
+# actually computed for a fixed-output derivation.
+FAKE_HASH = "sha256-" + base64.b64encode(b"\x00" * 32).decode()
+
+FOD_MISMATCH_RE = re.compile(
+    r"fixed-output derivation '([^']+)':.*?got:\s*(sha256-[A-Za-z0-9+/=]+)", re.S
+)
+
+
+def probe_fod_hash(filepath, pkg_name, attr, content):
+    """Return the hash nix computes for `attr` in `content`, or None.
+
+    The build runs on a throwaway copy of the tree (with `attr` set to a bogus
+    hash) so the file in the repository is never left holding a dummy value,
+    and the real hash is read back from the mismatch nix reports -- the same
+    procedure the nixpkgs manual describes for `vendorHash`.
+    """
+    if not pkg_name or attr not in FOD_HASH_ATTRS:
+        return None
+    pinned = re.search(rf'{attr} = "([^"]+)"', content)
+    if not pinned:
+        return None
+
+    tmp = tempfile.mkdtemp(prefix="update-py-")
+    try:
+        root = os.path.join(tmp, "tree")
+        shutil.copytree(
+            ".",
+            root,
+            symlinks=True,
+            ignore=shutil.ignore_patterns(".git", ".jj", ".reasonix", "result*"),
+        )
+        with open(os.path.join(root, filepath), "w") as f:
+            f.write(content.replace(pinned.group(0), f'{attr} = "{FAKE_HASH}"'))
+
+        expr = (
+            f"(builtins.getFlake {json.dumps(os.path.abspath(root))})"
+            f".packages.${{builtins.currentSystem}}.{pkg_name}"
+        )
+        result = subprocess.run(
+            ["nix", "build", "--no-link", "--impure", "--expr", expr],
+            capture_output=True,
+            text=True,
+        )
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    markers = FOD_HASH_ATTRS[attr]
+    for derivation, got in FOD_MISMATCH_RE.findall(result.stdout + result.stderr):
+        if any(marker in os.path.basename(derivation) for marker in markers):
+            return got
     return None
 
 
@@ -345,6 +414,22 @@ def update_file(filepath, pkg_data):
         new_content = new_content.replace(
             f'hash = "{current_hash}"', f'hash = "{new_hash}"'
         )
+
+    # Re-check the fetched-dependency hashes (go modules, cargo, npm) of the
+    # updated content. They are not covered by any upstream metadata: a
+    # nixpkgs/toolchain bump can change what the fetcher builds for the *same*
+    # source rev, which leaves the pinned hash stale without any version change
+    # to trigger an update.
+    for attr in FOD_HASH_ATTRS:
+        pinned = re.search(rf'{attr} = "([^"]+)"', new_content)
+        if not pinned:
+            continue
+        fresh = probe_fod_hash(filepath, pkg_data.get("name"), attr, new_content)
+        if fresh and fresh != pinned.group(1):
+            print(f"[{filepath}] Updating {attr} {pinned.group(1)} -> {fresh}...")
+            new_content = new_content.replace(
+                pinned.group(0), f'{attr} = "{fresh}"'
+            )
 
     if content != new_content:
         with open(filepath, "w") as f:

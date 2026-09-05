@@ -19,7 +19,6 @@
         thaw = prev.callPackage ./pkgs/thaw.nix { };
         mole-mac = prev.callPackage ./pkgs/mole-mac.nix { };
         dragterm = prev.callPackage ./pkgs/dragterm.nix { };
-        walavave-trash-cli = prev.callPackage ./pkgs/walavave-trash-cli.nix { };
         drucktool-utils = prev.callPackage ./pkgs/drucktool-utils.nix { };
         create-thesis = prev.lib.addMetaAttrs { mainProgram = "create-thesis"; } final.drucktool-utils;
         autonup = prev.lib.addMetaAttrs { mainProgram = "autonup"; } final.drucktool-utils;
