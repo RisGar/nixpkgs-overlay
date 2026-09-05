@@ -15,7 +15,7 @@
       overlays.default = final: prev: {
         jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
         lightning-matrix-client = prev.callPackage ./pkgs/lightning-matrix-client { };
-        logseq = prev.callPackage ./pkgs/logseq_2 { }; # TODO: wait for https://github.com/NixOS/nixpkgs/pull/516682 to be merged
+        logseq = prev.callPackage ./pkgs/logseq_og { }; # TODO: wait for https://github.com/NixOS/nixpkgs/pull/516682 to be merged
         thaw = prev.callPackage ./pkgs/thaw.nix { };
         mole-mac = prev.callPackage ./pkgs/mole-mac.nix { };
         dragterm = prev.callPackage ./pkgs/dragterm.nix { };
