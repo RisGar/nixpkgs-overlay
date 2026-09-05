@@ -21,6 +21,66 @@ def get_latest_release(owner, repo):
         return None
 
 
+def get_release_assets(owner, repo, tag):
+    """The `assets` entries of one release, or [] if they cannot be listed."""
+    url = f"https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}"
+    req = urllib.request.Request(url, headers={"User-Agent": "nix-update-script"})
+    try:
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read())
+        return data.get("assets") or []
+    except Exception:
+        return []
+
+
+def changed_segment(old, new):
+    """The differing middle of two strings sharing a prefix and a suffix.
+
+    `(old_seg, new_seg)` is empty for both when the strings are equal.
+    """
+    i = 0
+    while i < min(len(old), len(new)) and old[i] == new[i]:
+        i += 1
+    j = 0
+    while j < min(len(old), len(new)) - i and old[-1 - j] == new[-1 - j]:
+        j += 1
+    return old[i : len(old) - j], new[i : len(new) - j]
+
+
+def release_asset_url(url_str, owner, repo, tag, current_version, latest_version):
+    """The URL of the same asset in a newer release.
+
+    Rewriting the version inside the URL is only a guess: release asset names
+    carry more than the version, such as the short commit
+    (Lightning-0.9.8-c04ea54-macos-arm64.zip), and no version-derived rewrite
+    can produce that. The release's own asset list is authoritative -- the
+    name with the version bumped is looked up among it -- and because that
+    commit is new in every release, the lookup also accepts an asset whose
+    name matches apart from a single "-"-delimited token (the one upstream
+    stamps next to the version), as long as only one asset does. Assets named
+    after the version alone take the exact path. Without a hit, the guess
+    stands: that is what the URL rewrite produced before this lookup existed.
+    """
+    guess = url_str.replace(current_version, latest_version)
+    name = guess.rsplit("/", 1)[-1]
+    assets = get_release_assets(owner, repo, tag)
+    for asset in assets:
+        if asset.get("name") == name:
+            return asset.get("browser_download_url") or guess
+
+    want = name.split("-")
+    near = []
+    for asset in assets:
+        candidate = (asset.get("name") or "").split("-")
+        if len(candidate) != len(want):
+            continue
+        if sum(1 for c, w in zip(candidate, want) if c != w) == 1:
+            near.append(asset)
+    if len(near) == 1 and near[0].get("browser_download_url"):
+        return near[0]["browser_download_url"]
+    return guess
+
+
 def get_latest_commit(owner, repo):
     url = f"https://api.github.com/repos/{owner}/{repo}/commits"
     req = urllib.request.Request(url, headers={"User-Agent": "nix-update-script"})
@@ -296,6 +356,9 @@ def update_file(filepath, pkg_data):
     latest_version = None
     latest_rev = None
     new_hash = None
+    # (old, new) for the part of a release asset's name that differs beyond
+    # the version, e.g. the short commit in Lightning-0.9.8-c04ea54-...zip.
+    asset_rename = None
 
     try:
         if "fetchFromGitHub" in content and src.get("owner") and src.get("repo"):
@@ -415,7 +478,17 @@ def update_file(filepath, pkg_data):
                             )
                             latest_version = None
                         else:
-                            new_url = url_str.replace(current_version, latest_version)
+                            new_url = release_asset_url(
+                                url_str,
+                                owner,
+                                repo,
+                                latest_tag,
+                                current_version,
+                                latest_version,
+                            )
+                            guess = url_str.replace(current_version, latest_version)
+                            if new_url != guess:
+                                asset_rename = changed_segment(guess, new_url)
                             new_hash = prefetch_url_hash(new_url)
     except Exception as e:
         print(f"[{filepath}] Failed to fetch updates: {e}")
@@ -432,6 +505,18 @@ def update_file(filepath, pkg_data):
         new_content = new_content.replace(
             f'rev = "{current_rev}"', f'rev = "{latest_rev}"'
         )
+
+    # A release asset whose name changes by more than the version has to be
+    # renamed in the file too: the version itself is written as
+    # `Lightning-${finalAttrs.version}-...`, so the version replacement above
+    # reaches it, but the short commit the release stamps next to it is a
+    # literal there and only the release's asset list knows its new value.
+    if asset_rename and asset_rename[0] and asset_rename[0] in new_content:
+        print(
+            f"[{filepath}] Updating asset name "
+            f"{asset_rename[0]} -> {asset_rename[1]}..."
+        )
+        new_content = new_content.replace(asset_rename[0], asset_rename[1])
 
     if new_hash and current_hash:
         if new_hash != current_hash:
