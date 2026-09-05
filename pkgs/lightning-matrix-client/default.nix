@@ -1,26 +1,27 @@
 {
-  lib,
-  stdenv,
-  cmake,
-  ninja,
-  pkg-config,
-  ccache,
-  mold,
-  rustc,
   cargo,
-  rustPlatform,
-  qt6,
-  pipewire,
-  libsecret,
+  ccache,
+  cmake,
+  darwin,
+  fetchFromGitHub,
   glib,
-  xkeyboard_config,
   gst_all_1,
-  libnice,
-  openssl,
+  lib,
   libicns,
+  libnice,
+  libsecret,
+  mold,
+  ninja,
+  openssl,
+  pipewire,
+  pkg-config,
+  qt6,
+  rustPlatform,
+  rustc,
+  stdenv,
+  xkeyboard_config,
   withBuildAccelerators ? false,
   withRustBackend ? true,
-  fetchFromGitHub,
 }:
 
 let
@@ -44,13 +45,13 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "lightning-matrix-client";
-  version = "0.9.2";
+  version = "0.9.8";
 
   src = fetchFromGitHub {
     owner = "Mizerd";
     repo = "lightning";
     rev = "v${finalAttrs.version}";
-    hash = "sha256-54TziWfV9WGkEvgXwLuuXwMnkqg9xOaYCgUIq3sgj0g=";
+    hash = "sha256-DV6BQja7nEmXdrNHhohku/xFvS0nj9YW6bF7DE0zA/c=";
   };
 
   cargoRoot = "rust";
@@ -77,6 +78,7 @@ stdenv.mkDerivation (finalAttrs: {
   # nixpkgs-standard replacement for it.
   ++ lib.optionals stdenv.hostPlatform.isDarwin [
     libicns
+    darwin.autoSignDarwinBinariesHook
   ]
   ++ lib.optionals withRustBackend [
     rustc
@@ -84,6 +86,11 @@ stdenv.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals withBuildAccelerators [
     ccache
+  ]
+  # mold is an ELF-only linker with no Mach-O backend; Apple clang's Darwin
+  # driver does not know it (see the CMAKE_LINKER_TYPE gate below), so it is
+  # pointless and unbuildable on macOS.
+  ++ lib.optionals (withBuildAccelerators && stdenv.hostPlatform.isLinux) [
     mold
   ];
   buildInputs = [
@@ -115,6 +122,12 @@ stdenv.mkDerivation (finalAttrs: {
   ]
   ++ lib.optionals withBuildAccelerators [
     (lib.cmakeFeature "CMAKE_CXX_COMPILER_LAUNCHER" "ccache")
+  ]
+  ++ lib.optionals (withBuildAccelerators && stdenv.isLinux) [
+    # Only ELF targets can link with mold; on Darwin cmake would inject
+    # -fuse-ld=mold into every try-compile and clang fails configure with
+    # "invalid linker name in argument '-fuse-ld=mold'". Darwin keeps the
+    # default ld64 (via clang).
     (lib.cmakeFeature "CMAKE_LINKER_TYPE" "MOLD")
   ];
 
