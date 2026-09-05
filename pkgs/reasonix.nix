@@ -52,8 +52,7 @@ buildGoModule rec {
             bubblewrap
           ]
         )
-      } \
-    --set REASONIX_HOME ~/.config/reasonix
+      }
   '';
 
   meta = {
