@@ -5,7 +5,6 @@
   buildGoModule,
   codegraph,
   fetchFromGitHub,
-  flake,
   makeWrapper,
   ripgrep,
   bubblewrap,
@@ -69,7 +68,6 @@ buildGoModule rec {
     license = lib.licenses.mit;
     changelog = "https://github.com/esengine/DeepSeek-Reasonix/releases/tag/v${version}";
     sourceProvenance = with lib.sourceTypes; [ fromSource ];
-    maintainers = with flake.lib.maintainers; [ arch-fan ];
     mainProgram = "reasonix";
     platforms = lib.platforms.unix;
   };
