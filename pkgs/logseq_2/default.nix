@@ -23,7 +23,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # below.
   src = fetchurl {
     url = "https://github.com/logseq/logseq/releases/download/${finalAttrs.version}/Logseq-darwin-arm64-${finalAttrs.version}.zip";
-    hash = "sha256-+kNmJ46bgajdzaRZ5tl/SogndUPcMtfZQB7lSVo9lj0=";
+    hash = "sha256-kyfz+42KZnyk9en9q3JlLJSIIyJHFd6oLjc38I4BnB8=";
   };
 
   # The zip holds a bare Lightning.app at its root, so nothing may be cd'd into.
