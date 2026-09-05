@@ -158,6 +158,29 @@ def update_file(filepath, pkg_data):
             if latest_rev and latest_rev != current_rev:
                 new_hash = prefetch_hash(owner, repo, latest_rev)
 
+                # Rust packages that vendor their Cargo.lock for
+                # importCargoLock (pure eval cannot read it out of the fetched
+                # src) must keep the vendored copy in sync with the src rev;
+                # cargoRoot says where upstream keeps it.
+                lockfile = re.search(r"lockFile = \./([A-Za-z0-9_.-]+Cargo\.lock)", content)
+                if lockfile:
+                    cargo_root = re.search(r'cargoRoot = "([^"]+)"', content)
+                    root_path = (cargo_root.group(1) + "/") if cargo_root else ""
+                    lock_url = (
+                        f"https://raw.githubusercontent.com/{owner}/{repo}/{latest_rev}"
+                        f"/{root_path}Cargo.lock"
+                    )
+                    dest = os.path.join(os.path.dirname(filepath) or ".", lockfile.group(1))
+                    try:
+                        req = urllib.request.Request(lock_url, headers={"User-Agent": "nix-update-script"})
+                        with urllib.request.urlopen(req, timeout=30) as response:
+                            lock_data = response.read()
+                        with open(dest, "wb") as f:
+                            f.write(lock_data)
+                        print(f"[{filepath}] Updated vendored Cargo.lock from rev {latest_rev}")
+                    except Exception as e:
+                        print(f"[{filepath}] Failed to update vendored Cargo.lock: {e}")
+
         elif "fetchPypi" in content and pkg_data.get("pname") and current_hash:
             pname = pkg_data["pname"]
             latest_version = get_latest_pypi(pname.replace("_", "-"))

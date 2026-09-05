@@ -15,6 +15,7 @@
       homeManagerModules.default = ./modules/jellyfin-mpv-shim.nix;
       overlays.default = final: prev: {
         jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
+        lightning = prev.callPackage ./pkgs/lightning { };
         thaw = prev.callPackage ./pkgs/thaw.nix { };
         mole-mac = prev.callPackage ./pkgs/mole-mac.nix { };
         dragterm = prev.callPackage ./pkgs/dragterm.nix { };
