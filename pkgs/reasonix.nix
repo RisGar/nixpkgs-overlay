@@ -39,7 +39,6 @@ buildGoModule rec {
   doCheck = true;
 
   doInstallCheck = true;
-
   postFixup = ''
     wrapProgram $out/bin/reasonix \
       --prefix PATH : ${
@@ -54,6 +53,7 @@ buildGoModule rec {
           ]
         )
       }
+    --set REASONIX_HOME ~/.config/reasonix
   '';
 
   meta = {
