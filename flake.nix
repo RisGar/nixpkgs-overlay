@@ -31,6 +31,7 @@
           nix-gleam = nix-gleam;
         };
         vorssaint = prev.callPackage ./pkgs/vorssaint.nix { };
+        devonthink = prev.callPackage ./pkgs/devonthink.nix { };
         # TODO: detexify-next
 
         logseq = (
