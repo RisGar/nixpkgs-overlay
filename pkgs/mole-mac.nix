@@ -29,20 +29,32 @@ buildGoModule (finalAttrs: {
     "-w"
   ];
 
+  # Upstream's entry script derives SCRIPT_DIR from the path it was invoked as,
+  # so lib/ has to sit next to it. Its install.sh bridges that gap by rewriting
+  # the SCRIPT_DIR line, in a different shape every few releases, so keep the
+  # upstream checkout layout instead (mole, bin/ and lib/ side by side, as in
+  # the repo root) and let the $out/bin symlinks resolve into it.
   postInstall = ''
     libexec="$out/libexec"
     mkdir -p "$libexec"
+
+    # Inputs from the unpacked source, which stays intact for any later phase.
     cp -r bin lib "$libexec/"
+    install -m755 mole "$libexec/mole"
 
-    install -m755 mole "$out/bin/mole"
-    ln -s "$out/bin/mole" "$out/bin/mo"
+    # buildGoModule installs these as $out/bin/{analyze,status}, but bin/*.sh
+    # look for $SCRIPT_DIR/{analyze,status}-go: relocate them within $out, which
+    # also keeps the bare names off the user's PATH.
+    mv "$out/bin/analyze" "$libexec/bin/analyze-go"
+    mv "$out/bin/status" "$libexec/bin/status-go"
 
-    install -m755 "$out/bin/analyze" "$libexec/bin/analyze-go"
-    install -m755 "$out/bin/status" "$libexec/bin/status-go"
-    rm -f "$out/bin/analyze" "$out/bin/status"
+    # Resolving these lands on the entry script next to lib/.
+    ln -s "$libexec/mole" "$out/bin/mole"
+    ln -s "$libexec/mole" "$out/bin/mo"
 
-    substituteInPlace "$out/bin/mole" \
-      --replace-fail 'SCRIPT_DIR="$(cd "$(dirname "''${BASH_SOURCE[0]}")" && pwd)"' "SCRIPT_DIR=\"$out/libexec\""
+    # Fails the build, not the user, if the entrypoints ever stop resolving
+    # their libraries on their own.
+    [[ "$("$out/bin/mo" --version 2>&1)" == *"Mole version $version"* ]]
   '';
 
   doCheck = false;
