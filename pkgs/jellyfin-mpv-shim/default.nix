@@ -11,14 +11,14 @@
 
 python3Packages.buildPythonApplication rec {
   pname = "jellyfin-mpv-shim";
-  version = "3.0.0";
+  version = "3.1.0";
   pyproject = true;
 
   # contains shaderpacks
   src = fetchPypi {
     pname = "jellyfin_mpv_shim";
     inherit version;
-    hash = "sha256-K4dmJ7/aNsxEWKLXY8RNvszmA8FstzD/Kh7M0wkU/Rs=";
+    hash = "sha256-ad6ZokTy8vxAVrgopK+DK9WQqOlEKssigA++68vuid4=";
   };
 
   patches = lib.optionals stdenv.hostPlatform.isDarwin [
