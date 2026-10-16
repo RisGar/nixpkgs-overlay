@@ -63,7 +63,7 @@ python3Packages.buildPythonApplication rec {
   postPatch = ''
     substituteInPlace jellyfin_mpv_shim/conf.py \
       --replace-fail "check_updates: bool = True" "check_updates: bool = False" \
-      --replace-fail "notify_updates: bool = True" "notify_updates: bool = False"
+      --replace-fail 'notify_updates: str = "default"' 'notify_updates: str = "disabled"'
     # python-mpv renamed to mpv with 1.0.4
     substituteInPlace pyproject.toml \
       --replace-fail "python-mpv" "mpv" \
