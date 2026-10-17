@@ -38,7 +38,7 @@ python3Packages.buildPythonApplication rec {
   dependencies = with python3Packages; [
     jellyfin-apiclient-python
     (mpv.overridePythonAttrs (old: {
-      doCheck = !stdenv.isDarwin;
+      doCheck = !stdenv.hostPlatform.isDarwin;
     }))
     python-mpv-jsonipc
     requests
@@ -68,12 +68,6 @@ python3Packages.buildPythonApplication rec {
     substituteInPlace pyproject.toml \
       --replace-fail "python-mpv" "mpv" \
       --replace-fail "mpv-jsonipc" "python_mpv_jsonipc"
-  ''
-  + lib.optionalString stdenv.hostPlatform.isDarwin ''
-    # Patch pack-next.json for macOS compatibility if it exists
-    find . -name "pack-next.json" -exec sed -i 's/"gpu_api", "opengl"/"gpu_api", "vulkan"/' {} + || true
-    find . -name "pack-next.json" -exec sed -i '/"dither-fruit-default",/d' {} + || true
-    find . -name "pack-next.json" -exec sed -i 's/"hwdec-default",/"hwdec-default"/' {} + || true
   '';
 
   # Install all the icons for the desktop item
@@ -89,7 +83,6 @@ python3Packages.buildPythonApplication rec {
   preFixup = lib.optionalString stdenv.hostPlatform.isLinux ''
     makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
   '';
-
   dontWrapGApps = true;
 
   pythonImportsCheck = [ "jellyfin_mpv_shim" ];
