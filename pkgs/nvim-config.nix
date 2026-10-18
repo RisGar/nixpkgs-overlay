@@ -7,8 +7,8 @@ let
   src = fetchFromGitHub {
     owner = "RisGar";
     repo = "nvim-config";
-    rev = "e2209e37252c887fb8d8b41f26b644f65f9064f3";
-    hash = "sha256-kezfeqKhmyQHzlBWcgk9jXK0ee4mWsUHkkAgPe5LoKc=";
+    rev = "89aa30672ea44cde29470a4b4786e3199765aab7";
+    hash = "sha256-HNvnizjuzUkXVnahXAkG1o7zZG/o/hi+CY1g5trwCdw=";
   };
 in
 (callPackage "${src}/default.nix" { }).overrideAttrs (old: {
