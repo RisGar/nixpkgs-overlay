@@ -13,7 +13,28 @@
     {
       homeManagerModules.default = ./modules/jellyfin-mpv-shim.nix;
       overlays.default = final: prev: {
-        jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
+        # jellyfin-mpv-shim 3.2.0 needs python-mpv-jsonipc >= 1.5.0, which nixpkgs
+        # still doesn't have (1.4.0 as of 2026-10-20), so its
+        # pythonRuntimeDepsCheck fails. Bump it for this package only, so nothing
+        # else gets rebuilt against the new version.
+        # jellyfin-apiclient-python >= 1.20.2 comes straight from nixpkgs now
+        # (1.20.2 landed on master 2026-10-18, PR #575481).
+        # TODO: drop once nixpkgs carries python-mpv-jsonipc 1.5.0.
+        jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim {
+          python3Packages = final.python3Packages.overrideScope (
+            _pyFinal: py: {
+              python-mpv-jsonipc = py.python-mpv-jsonipc.overridePythonAttrs (_: {
+                version = "1.5.0";
+                src = final.fetchFromGitHub {
+                  owner = "iwalton3";
+                  repo = "python-mpv-jsonipc";
+                  tag = "v1.5.0";
+                  hash = "sha256-m+FFj86bOGgt8IMV3SRzFK1zLYvU9T4D5DXVIxYeRro=";
+                };
+              });
+            }
+          );
+        };
         lightning-matrix-client = prev.callPackage ./pkgs/lightning-matrix-client { };
         logseq = prev.callPackage ./pkgs/logseq_2 { }; # TODO: wait for https://github.com/NixOS/nixpkgs/pull/516682 to be merged
         thaw = prev.callPackage ./pkgs/thaw.nix { };
