@@ -7,11 +7,11 @@
 
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "vorssaint";
-  version = "3.4.2";
+  version = "3.4.3";
 
   src = fetchurl {
     url = "https://github.com/vorssaint/vorssaint-utils/releases/download/v${finalAttrs.version}/Vorssaint-${finalAttrs.version}.dmg";
-    hash = "sha256-27P/dslDE0Fs6sAHdPxaNu0xARX1Qi82XfoBTN5CFNc=";
+    hash = "sha256-0dWUNflJU5lorcvJqiVFprkGELdTv4Q9gRPIVhWiA5Y=";
   };
 
   sourceRoot = ".";
