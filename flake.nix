@@ -26,6 +26,18 @@
                   hash = "sha256-m+FFj86bOGgt8IMV3SRzFK1zLYvU9T4D5DXVIxYeRro=";
                 };
               });
+              # TODO: drop once nixpkgs carries certifi >= 2026.10.19, which
+              # jellyfin-mpv-shim 3.3.0 requires because it distrusts the
+              # compromised eMudhra (emSign) G3 roots.
+              certifi = py.certifi.overridePythonAttrs (_: {
+                version = "2026.10.23";
+                src = final.fetchFromGitHub {
+                  owner = "certifi";
+                  repo = "python-certifi";
+                  tag = "2026.10.23";
+                  hash = "sha256-uESJgC07To+bUePmwi180SCtAzAZkmEn1UolTWpB4X0=";
+                };
+              });
             }
           );
         };
