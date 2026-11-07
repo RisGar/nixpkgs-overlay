@@ -6,7 +6,7 @@
 
 buildGoModule (finalAttrs: {
   pname = "mole-mac";
-  version = "1.67.0";
+  version = "1.69.0";
 
   src = fetchFromGitHub {
     owner = "tw93";
@@ -14,10 +14,10 @@ buildGoModule (finalAttrs: {
     # Mole's tags are capital-V ("V1.54.0"); the lowercase prefix here produced
     # "vV1.54.0", which the archive URL does not resolve at all.
     rev = "V${finalAttrs.version}";
-    hash = "sha256-U30X+Ty5oJKXU0bfrvelJphr/fVGsZMfPjeLirBwUAg=";
+    hash = "sha256-Q8NYicRhLyMRHmVGWJGTmaY17E+z1ROx5907dlQWOuI=";
   };
 
-  vendorHash = "sha256-PBnWwgH9xYgMwcr/MVbH29Sb4ODI0+lgqSvlYC+pj/0=";
+  vendorHash = "sha256-uQRX69ZV/puzjO7lU42+hcy7D2S/SLNEq8Fhu40cb0I=";
 
   subPackages = [
     "cmd/analyze"

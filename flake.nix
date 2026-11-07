@@ -13,22 +13,10 @@
     {
       homeManagerModules.default = ./modules/jellyfin-mpv-shim.nix;
       overlays.default = final: prev: {
-        # TODO: drop once nixpkgs carries python-mpv-jsonipc 1.5.0.
         jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim {
           python3Packages = final.python3Packages.overrideScope (
             _pyFinal: py: {
-              python-mpv-jsonipc = py.python-mpv-jsonipc.overridePythonAttrs (_: {
-                version = "1.5.0";
-                src = final.fetchFromGitHub {
-                  owner = "iwalton3";
-                  repo = "python-mpv-jsonipc";
-                  tag = "v1.5.0";
-                  hash = "sha256-m+FFj86bOGgt8IMV3SRzFK1zLYvU9T4D5DXVIxYeRro=";
-                };
-              });
-              # TODO: drop once nixpkgs carries certifi >= 2026.10.19, which
-              # jellyfin-mpv-shim 3.3.0 requires because it distrusts the
-              # compromised eMudhra (emSign) G3 roots.
+              # TODO: drop once nixpkgs carries certifi >= 2026.10.19: https://nixpkgs-tracker.ocfox.me/?pr=580131
               certifi = py.certifi.overridePythonAttrs (_: {
                 version = "2026.10.23";
                 src = final.fetchFromGitHub {
@@ -70,8 +58,8 @@
             inherit system;
             overlays = [ self.overlays.default ];
             config.allowUnfree = true;
+            config.allowBroken = true;
           };
-          # Dynamically extract all attributes defined in our overlay
           pkgs' = self.overlays.default pkgs pkgs;
         in
         pkgs.lib.filterAttrs (
