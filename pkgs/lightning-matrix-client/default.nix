@@ -12,7 +12,7 @@
 # points the Qt plugin paths at them), so nix only has to unpack and install it.
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "lightning-matrix-client";
-  version = "0.10.4";
+  version = "0.10.5";
 
   # The asset name carries the release's short commit next to the version
   # (Lightning-0.9.8-<short commit>-macos-arm64.zip), so it is pinned whole
@@ -21,8 +21,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # aarch64-darwin is published, which is also what meta.platforms allows
   # below.
   src = fetchurl {
-    url = "https://github.com/Mizerd/lightning/releases/download/v${finalAttrs.version}/Lightning-${finalAttrs.version}-fd5aedf-macos-arm64.zip";
-    hash = "sha256-19OZ5DFRwI8liRmiE5aENdmCOgcvyJFJBIpW/BjcrSo=";
+    url = "https://github.com/Mizerd/lightning/releases/download/v${finalAttrs.version}/Lightning-${finalAttrs.version}-2b63840-macos-arm64.zip";
+    hash = "sha256-UUJCjp2MR8WE96saHJrt7F//QteAfH5FPj5Le6YT+Kg=";
   };
 
   # The zip holds a bare Lightning.app at its root, so nothing may be cd'd into.
