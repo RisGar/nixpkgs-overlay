@@ -13,22 +13,7 @@
     {
       homeManagerModules.default = ./modules/jellyfin-mpv-shim.nix;
       overlays.default = final: prev: {
-        jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim {
-          python3Packages = final.python3Packages.overrideScope (
-            _pyFinal: py: {
-              # TODO: drop once nixpkgs carries certifi >= 2026.10.19: https://nixpkgs-tracker.ocfox.me/?pr=580131
-              certifi = py.certifi.overridePythonAttrs (_: {
-                version = "2026.10.23";
-                src = final.fetchFromGitHub {
-                  owner = "certifi";
-                  repo = "python-certifi";
-                  tag = "2026.10.23";
-                  hash = "sha256-uESJgC07To+bUePmwi180SCtAzAZkmEn1UolTWpB4X0=";
-                };
-              });
-            }
-          );
-        };
+        jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
         lightning-matrix-client = prev.callPackage ./pkgs/lightning-matrix-client { };
         logseq = prev.callPackage ./pkgs/logseq_2 { }; # TODO: wait for https://github.com/NixOS/nixpkgs/pull/516682 to be merged
         thaw = prev.callPackage ./pkgs/thaw.nix { };
