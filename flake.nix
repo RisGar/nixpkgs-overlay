@@ -15,8 +15,6 @@
       overlays.default = final: prev: {
         jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
         lightning-matrix-client = prev.callPackage ./pkgs/lightning-matrix-client { };
-        thaw = prev.callPackage ./pkgs/thaw.nix { };
-        mole-mac = prev.callPackage ./pkgs/mole-mac.nix { };
         dragterm = prev.callPackage ./pkgs/dragterm.nix { };
         drucktool-utils = prev.callPackage ./pkgs/drucktool-utils.nix { };
         create-thesis = prev.lib.addMetaAttrs { mainProgram = "create-thesis"; } final.drucktool-utils;
@@ -26,13 +24,12 @@
         print-cli-rs = prev.callPackage ./pkgs/print-cli-rs.nix { };
         nerdfont-cheatsheet = prev.callPackage ./pkgs/nerdfont-cheatsheet.nix { nix-gleam = nix-gleam; };
         vorssaint = prev.callPackage ./pkgs/vorssaint.nix { };
-        devonthink = prev.callPackage ./pkgs/devonthink.nix { };
         reasonix = prev.callPackage ./pkgs/reasonix.nix { };
         # TODO: detexify-next
 
-        signal-desktop = prev.signal-desktop.override {
-          withAppleEmojis = true;
-        };
+        # signal-desktop = prev.signal-desktop.override {
+        #   withAppleEmojis = true;
+        # };
       };
 
       packages = forAllSystems (
