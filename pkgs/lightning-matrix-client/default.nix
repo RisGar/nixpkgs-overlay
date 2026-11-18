@@ -21,7 +21,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   # aarch64-darwin is published, which is also what meta.platforms allows
   # below.
   src = fetchurl {
-    url = "https://github.com/Mizerd/lightning/releases/download/v${finalAttrs.version}/Lightning-${finalAttrs.version}-2b63840-macos-arm64.zip";
+    url = "https://github.com/Mizerd/lightning/releases/download/v${finalAttrs.version}/Lightning-${finalAttrs.version}-61642b3-macos-arm64.zip";
     hash = "sha256-8o6C4O4KEJe2JKFszvmkNtOkO2Ek1UJ4eqaY6SNG/qQ=";
   };
 
