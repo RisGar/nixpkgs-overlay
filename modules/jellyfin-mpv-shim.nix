@@ -5,7 +5,6 @@
   ...
 }:
 let
-  inherit (builtins) typeOf stringLength;
   jsonFormat = pkgs.formats.json { };
   cfg = config.services.jellyfin-mpv-shim;
 
@@ -17,13 +16,13 @@ let
       bool = lib.hm.booleans.yesNo option;
       string = option;
     }
-    .${typeOf option};
+    .${builtins.typeOf option};
 
   renderOptionValue =
     value:
     let
       rendered = renderOption value;
-      length = toString (stringLength rendered);
+      length = toString (builtins.stringLength rendered);
     in
     "%${length}%${rendered}";
 
@@ -34,69 +33,65 @@ let
 
   renderBindings =
     bindings: lib.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "${name} ${value}") bindings);
-
-  isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
 in
 {
   meta.maintainers = [ lib.maintainers.repparw ];
   disabledModules = [ "services/jellyfin-mpv-shim.nix" ];
 
-  options = {
-    services.jellyfin-mpv-shim = {
-      enable = lib.mkEnableOption "Jellyfin mpv shim";
+  options.services.jellyfin-mpv-shim = {
+    enable = lib.mkEnableOption "Jellyfin mpv shim";
 
-      package = lib.mkPackageOption pkgs "jellyfin-mpv-shim" { };
+    package = lib.mkPackageOption pkgs "jellyfin-mpv-shim" { };
 
-      settings = lib.mkOption {
-        inherit (jsonFormat) type;
-        default = { };
-        example = {
-          allow_transcode_to_h265 = false;
-          always_transcode = false;
-          audio_output = "hdmi";
-          auto_play = true;
-          fullscreen = true;
-          player_name = "mpv-shim";
-        };
-        description = ''
-          Configuration written to
-          {file}`$XDG_CONFIG_HOME/jellyfin-mpv-shim/conf.json`.
-          See <https://github.com/jellyfin/jellyfin-mpv-shim#configuration>
-          for the configuration documentation.
-        '';
+    settings = lib.mkOption {
+      inherit (jsonFormat) type;
+      default = { };
+      example = {
+        allow_transcode_to_h265 = false;
+        always_transcode = false;
+        audio_output = "hdmi";
+        auto_play = true;
+        fullscreen = true;
+        player_name = "mpv-shim";
       };
+      description = ''
+        Configuration written to
+        {file}`$XDG_CONFIG_HOME/jellyfin-mpv-shim/conf.json`.
+        See <https://github.com/jellyfin/jellyfin-mpv-shim#configuration>
+        for the configuration documentation.
+      '';
+    };
 
-      additionalMpvConfig = lib.mkOption {
-        type = lib.types.nullOr (
-          lib.types.attrsOf (
-            lib.types.either lib.types.str (
-              lib.types.either lib.types.int (lib.types.either lib.types.bool lib.types.float)
-            )
+    additionalMpvConfig = lib.mkOption {
+      type = lib.types.nullOr (
+        lib.types.attrsOf (
+          lib.types.either lib.types.str (
+            lib.types.either lib.types.int (lib.types.either lib.types.bool lib.types.float)
           )
-        );
-        default = null;
-        example = {
-          profile = "gpu-hq";
-          force-window = true;
-        };
-        description = ''
-          Additional mpv configuration options to use for jellyfin-mpv-shim.
-          These are appended to the configuration in {option}`programs.mpv.config`.
-        '';
+        )
+      );
+      default = null;
+      example = {
+        profile = "gpu-hq";
+        force-window = true;
       };
+      description = ''
+        Additional mpv configuration options to use for jellyfin-mpv-shim.
+        These are appended to the configuration in {option}`programs.mpv.config`.
+      '';
+    };
 
-      additionalMpvBindings = lib.mkOption {
-        type = lib.types.nullOr (lib.types.attrsOf lib.types.str);
-        default = null;
-        example = {
-          WHEEL_UP = "seek 10";
-          WHEEL_DOWN = "seek -10";
-        };
-        description = ''
-          Additional mpv input bindings to use for jellyfin-mpv-shim.
-          These are appended to the configuration in {option}`programs.mpv.bindings`.
-        '';
+    additionalMpvBindings = lib.mkOption {
+      type = lib.types.nullOr (lib.types.attrsOf lib.types.str);
+      default = null;
+      example = {
+        WHEEL_UP = "seek 10";
+        WHEEL_DOWN = "seek -10";
       };
+      description = ''
+        Additional mpv input bindings to use for jellyfin-mpv-shim.
+        These are appended to the configuration in {option}`programs.mpv.bindings`.
+      '';
     };
   };
 
@@ -126,7 +121,7 @@ in
         };
       };
 
-    systemd.user.services.jellyfin-mpv-shim = lib.mkIf (!isDarwin) {
+    systemd.user.services.jellyfin-mpv-shim = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
       Unit = {
         Description = "Jellyfin mpv shim";
         Documentation = "https://github.com/jellyfin/jellyfin-mpv-shim";
@@ -143,7 +138,7 @@ in
       };
     };
 
-    launchd.agents.jellyfin-mpv-shim = lib.mkIf isDarwin {
+    launchd.agents.jellyfin-mpv-shim = lib.mkIf pkgs.stdenv.hostPlatform.isDarwin {
       enable = true;
       config = {
         ProgramArguments = [ "${lib.getExe cfg.package}" ];

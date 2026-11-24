@@ -9,8 +9,8 @@ let
   src = fetchFromGitHub {
     owner = "RisGar";
     repo = "drs150-bridge";
-    rev = "5d74b3bdb504ee4204d7ecdc5e0d99d8a35f8873";
-    hash = "sha256-vp4BiWE7aWdZ38PeVZ90kJeG6DQVCn/yLqzF62flZO8=";
+    rev = "929d806e1013079ac45622e334e51550a656c581";
+    hash = "sha256-zPQiLDPEF313mNykAm4cbP11h9WAlJ95Yi+ZA8vgrmM=";
   };
 
   rust = rust-bin.stable.latest.default.override {
