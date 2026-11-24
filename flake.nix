@@ -5,32 +5,42 @@
       self,
       nixpkgs,
       nix-gleam,
+      rust-overlay,
       ...
     }:
     let
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
     in
     {
-      homeManagerModules.default = ./modules/jellyfin-mpv-shim.nix;
-      overlays.default = final: prev: {
-        jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
-        lightning-matrix-client = prev.callPackage ./pkgs/lightning-matrix-client { };
-        dragterm = prev.callPackage ./pkgs/dragterm.nix { };
-        drucktool-utils = prev.callPackage ./pkgs/drucktool-utils.nix { };
-        create-thesis = prev.lib.addMetaAttrs { mainProgram = "create-thesis"; } final.drucktool-utils;
-        autonup = prev.lib.addMetaAttrs { mainProgram = "autonup"; } final.drucktool-utils;
-        nvim = prev.callPackage ./pkgs/nvim-config.nix { };
-        nixln-edit = prev.callPackage ./pkgs/nixln-edit.nix { };
-        print-cli-rs = prev.callPackage ./pkgs/print-cli-rs.nix { };
-        nerdfont-cheatsheet = prev.callPackage ./pkgs/nerdfont-cheatsheet.nix { nix-gleam = nix-gleam; };
-        vorssaint = prev.callPackage ./pkgs/vorssaint.nix { };
-        reasonix = prev.callPackage ./pkgs/reasonix.nix { };
-        # TODO: detexify-next
-
-        # signal-desktop = prev.signal-desktop.override {
-        #   withAppleEmojis = true;
-        # };
+      homeManagerModules = {
+        jellyfin-mpv-shim = ./modules/jellyfin-mpv-shim.nix;
+        drs150-bridge = ./modules/drs150-bridge.nix;
       };
+      # rust-overlay is composed in: drs150-bridge needs a Rust std for
+      # x86_64-apple-darwin, which nixpkgs' rustc does not ship.
+      overlays.default = nixpkgs.lib.composeManyExtensions [
+        rust-overlay.overlays.default
+        (final: prev: {
+          jellyfin-mpv-shim = prev.callPackage ./pkgs/jellyfin-mpv-shim { };
+          lightning-matrix-client = prev.callPackage ./pkgs/lightning-matrix-client { };
+          dragterm = prev.callPackage ./pkgs/dragterm.nix { };
+          drucktool-utils = prev.callPackage ./pkgs/drucktool-utils.nix { };
+          create-thesis = prev.lib.addMetaAttrs { mainProgram = "create-thesis"; } final.drucktool-utils;
+          autonup = prev.lib.addMetaAttrs { mainProgram = "autonup"; } final.drucktool-utils;
+          nvim = prev.callPackage ./pkgs/nvim-config.nix { };
+          nixln-edit = prev.callPackage ./pkgs/nixln-edit.nix { };
+          print-cli-rs = prev.callPackage ./pkgs/print-cli-rs.nix { };
+          nerdfont-cheatsheet = prev.callPackage ./pkgs/nerdfont-cheatsheet.nix { nix-gleam = nix-gleam; };
+          vorssaint = prev.callPackage ./pkgs/vorssaint.nix { };
+          reasonix = prev.callPackage ./pkgs/reasonix.nix { };
+          drs150-bridge = prev.callPackage ./pkgs/drs150-bridge.nix { };
+          # TODO: detexify-next
+
+          # signal-desktop = prev.signal-desktop.override {
+          #   withAppleEmojis = true;
+          # };
+        })
+      ];
 
       packages = forAllSystems (
         system:
@@ -52,5 +62,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nix-gleam.url = "github:arnarg/nix-gleam/main";
     nix-gleam.inputs.nixpkgs.follows = "nixpkgs";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 }
