@@ -523,10 +523,44 @@ def update_file(filepath, pkg_data):
                             )
                             guess = url_str.replace(current_version, latest_version)
                             if new_url != guess:
-                                asset_rename = changed_segment(guess, new_url)
+                                # Diff the asset *names*, not the URLs: the API
+                                # reports every asset under the repository's
+                                # current name, so after an upstream rename the
+                                # URL paths differ too (github redirects the old
+                                # one). A whole-URL diff then spans the path, the
+                                # version and the stamped commit at once, and no
+                                # file spells that out -- the rename would go
+                                # unannounced and unapplied.
+                                asset_rename = changed_segment(
+                                    guess.rsplit("/", 1)[-1], new_url.rsplit("/", 1)[-1]
+                                )
                             new_hash = prefetch_url_hash(new_url)
+                            if new_hash is None:
+                                # A release can be published before its assets
+                                # are uploaded. Bumping the version then would
+                                # leave the file pointing at a URL that does not
+                                # exist yet, still carrying the previous asset
+                                # name (and so the previous commit).
+                                print(
+                                    f"[{filepath}] Skipping: {new_url} is not "
+                                    "downloadable (assets not published yet?)"
+                                )
+                                return
     except Exception as e:
         print(f"[{filepath}] Failed to fetch updates: {e}")
+        return
+
+    # A release asset whose name changes by more than the version has to be
+    # renamed in the file too. When the file does not spell that rename out --
+    # the changed part includes something it writes indirectly, such as the
+    # version in `Lightning-${finalAttrs.version}-...` -- writing the version and
+    # the hash alone would leave the old name (and the old commit it stamps)
+    # behind, pointing at a URL that does not exist. Leave the file untouched.
+    if asset_rename and asset_rename[0] and asset_rename[0] not in new_content:
+        print(
+            f"[{filepath}] Skipping: cannot rename asset "
+            f"{asset_rename[0]} -> {asset_rename[1]} in the file"
+        )
         return
 
     # Every replacement below is applied -- and announced -- only when the
