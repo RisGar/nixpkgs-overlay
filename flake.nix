@@ -12,7 +12,13 @@
       forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.systems.flakeExposed;
     in
     {
-      homeManagerModules = {
+      homeManagerModules = rec {
+        default = {
+          imports = [
+            jellyfin-mpv-shim
+            drs150-bridge
+          ];
+        };
         jellyfin-mpv-shim = ./modules/jellyfin-mpv-shim.nix;
         drs150-bridge = ./modules/drs150-bridge.nix;
       };
